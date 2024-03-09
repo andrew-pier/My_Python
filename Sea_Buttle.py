@@ -5,8 +5,8 @@ import time
 tk = Tk()
 app_running = True
 
-size_canvas_x = 400
-size_canvas_y = 400
+size_canvas_x = 500
+size_canvas_y = 500
 s_x = s_y = 10  # Размер игрового поля
 step_x = size_canvas_x // s_x  # шаг клетки
 step_y = size_canvas_y // s_y
