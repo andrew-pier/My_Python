@@ -72,6 +72,10 @@ b1 = Button(tk, text='Начать заново!', command=button_begin_again)
 b1.place(x=size_canvas_x + menu_x / 8, y=60, width=menu_x / 4 * 3)
 
 
+def draw_point(x, y):
+    print('Нвжвты координаты  X=', x, 'Y=', y )
+    print(enemy_ships[y][x])
+
 def add_to_all(event):
     _type = 0  # ЛКМ
     if event.num == 3:
@@ -83,9 +87,10 @@ def add_to_all(event):
 
     ip_x = mouse_x // step_x
     ip_y = mouse_y // step_y
-
-    print(mouse_x, mouse_y)
     print(ip_x, ip_y, '_type: ', _type)
+    if ip_x < s_x and ip_y < s_y:  # Если клик мыши в пределах игрового поля
+        draw_point(ip_x, ip_y)
+
 
 
 canvas.bind_all("<Button-1>", add_to_all)  # Левая кнопка мыши
