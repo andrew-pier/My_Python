@@ -13,13 +13,14 @@ s_x = s_y = 10  # Кол-во клеток игрового поля
 step_x = size_canvas_x // s_x  # шаг клетки (размер каждой клетки)
 step_y = size_canvas_y // s_y
 menu_x = step_x * 4  # Место для меню справа от поля
+menu_y = 40  # size_canvas_y / 10  # Место для меню внизу поля
 
 ships_list = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]  # Список все кораблей
 enemy_ships = [[0 for i in range(s_x)] for i in range(s_y)]  # Пустая матрица игнового поля. Заполняем нолями
 # print('МАТРИЦА ПОЛЯ:\n', *enemy_ships, sep='\n')
 list_ids = []  # список объектов canvas
 points = [[-1 for i in range(s_x)] for i in range(s_y)]  # Список координит, куда уже кликали мышкой
-count_boom = sum(ships_list)
+count_boom = sum(ships_list)  # Счётчик попаданий = сумме палуб всех кораблей
 
 
 
@@ -43,7 +44,7 @@ tk.title('Игра "Морской бой"')  # Заголовок окна
 tk.resizable(False, False)  # запрещаем изменение размера окна
 tk.wm_attributes("-topmost", 1)  # поверх других окон
 
-canvas = Canvas(tk, width=size_canvas_x * 2 + menu_x, height=size_canvas_y, bd=0, highlightthickness=0)
+canvas = Canvas(tk, width=size_canvas_x * 2 + menu_x, height=size_canvas_y + menu_y, bd=0, highlightthickness=0)
 canvas.create_rectangle(0, 0, size_canvas_x, size_canvas_y, fill="white")
 canvas.create_rectangle(size_canvas_x + menu_x, 0, size_canvas_x * 2 + menu_x, size_canvas_y, fill="lightblue")
 canvas.pack()
@@ -52,6 +53,12 @@ tk.update()
 draw_table()
 draw_table(size_canvas_x + menu_x)
 
+t0 = Label(tk, text='Игрок №1', font = ('Helvetica', 16))
+t0.place (x=size_canvas_x // 2 - t0.winfo_reqwidth() // 2, y=size_canvas_y + 3)
+t1 = Label(tk, text='Игрок №2', font = ('Helvetica', 16))
+t1.place (x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2, y=size_canvas_y + 3)
+t0.configure(background='red')
+t0.configure(background='white')
 
 def button_show_enemy():
     for i in range(0, s_x):
