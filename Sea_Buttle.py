@@ -90,9 +90,11 @@ def button_begin_again():
     global list_ids
     global points, points2
     global enemy_ships, my_ships
+    global count_boom
     for elemnt in list_ids:
         canvas.delete(elemnt)
     list_ids = []
+    count_boom = sum(ships_list)
     points = [[-1 for i in range(s_x)] for i in range(s_y)]
     points2 = [[-1 for i in range(s_x)] for i in range(s_y)]
     # print('МАТРИЦА ПОЛЯ:\n', *points, sep='\n')
@@ -132,7 +134,7 @@ def draw_point(x, y):
         id1 = canvas.create_oval(x * step_x, y * step_y, x * step_x + step_x, y * step_y + step_y, fill=color)
         list_ids.append(id1)
         count_boom -= 1
-        print(f'Осталось {count_boom}')
+        print(f'Осталось {count_boom} {enemy_ships[y][x]}-х палубник))')
         if count_boom == 0:
             print('ПОБЕДА!!!')
             button_show_enemy()
