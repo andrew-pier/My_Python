@@ -20,6 +20,7 @@ ships_list = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]  # Список все корабл�
 # print('МАТРИЦА ПОЛЯ:\n', *enemy_ships, sep='\n')
 list_ids = []  # список объектов canvas
 points = [[-1 for i in range(s_x)] for i in range(s_y)]  # Список координит, куда уже кликали мышкой
+points2 = [[-1 for i in range(s_x)] for i in range(s_y)]  # Список координит, куда противник кликал мышкой
 count_boom = sum(ships_list)  # Счётчик попаданий = сумме палуб всех кораблей
 
 
@@ -78,8 +79,8 @@ def show_my_ships():
         for j in range(0, s_y):
             if my_ships[j][i] > 0: # Если по координатам есть корабль
                 color = 'darkred'
-                # if points[j][i] == 0: # Если по этой клетке был выстрел ЛКМ
-                #     color = 'yellow'
+                if points2[j][i] == 0: # Если по этой клетке был выстрел ЛКМ
+                    color = 'yellow'
                 _id = canvas.create_rectangle(i * step_x + plus, j * step_y, i * step_x + step_x + plus,
                                               j * step_y + step_y, fill=color)
                 list_ids.append(_id)
@@ -87,7 +88,7 @@ def show_my_ships():
 
 def button_begin_again():
     global list_ids
-    global points
+    global points, points2
     global enemy_ships
     global my_ships
     global count_boom
@@ -96,17 +97,21 @@ def button_begin_again():
         canvas.delete(elemnt)
     list_ids = []
     points = [[-1 for i in range(s_x)] for i in range(s_y)]
+    points2 = [[-1 for i in range(s_x)] for i in range(s_y)]
     # print('МАТРИЦА ПОЛЯ:\n', *points, sep='\n')
     enemy_ships = generate_enemy_ships(ships_list)
     my_ships = generate_enemy_ships(ships_list)
-    show_my_ships()
+    # show_my_ships()
 
 
 b0 = Button(tk, text='Показать корабли противника', command=button_show_enemy)
 b0.place(x=size_canvas_x + menu_x / 8, y=30, width=menu_x / 4 * 3)  # отступ кнопки 1/8 от меню, ширина = 3/4 от меню
 
-b1 = Button(tk, text='Начать заново!', command=button_begin_again)
-b1.place(x=size_canvas_x + menu_x / 8, y=60, width=menu_x / 4 * 3)
+b1 = Button(tk, text='Показать мои корабли', command=show_my_ships)
+b1.place(x=size_canvas_x + menu_x / 8, y=60, width=menu_x / 4 * 3)  # отступ кнопки 1/8 от меню, ширина = 3/4 от меню
+
+b2 = Button(tk, text='Начать заново!', command=button_begin_again)
+b2.place(x=size_canvas_x + menu_x / 8, y=90, width=menu_x / 4 * 3)
 
 
 def draw_point(x, y):
@@ -231,7 +236,7 @@ def generate_enemy_ships(ships_list):
 
 enemy_ships = generate_enemy_ships(ships_list)
 my_ships = generate_enemy_ships(ships_list)
-show_my_ships()
+# show_my_ships()
 
 
 while app_running:
