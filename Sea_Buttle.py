@@ -16,7 +16,7 @@ menu_x = step_x * 4  # Место для меню справа от поля
 menu_y = 40  # size_canvas_y / 10  # Место для меню внизу поля
 
 ships_list = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]  # Список все кораблей
-enemy_ships = [[0 for i in range(s_x)] for i in range(s_y)]  # Пустая матрица игнового поля. Заполняем нолями
+#enemy_ships = [[0 for i in range(s_x)] for i in range(s_y)]  # Пустая матрица игнового поля. Заполняем нолями
 # print('МАТРИЦА ПОЛЯ:\n', *enemy_ships, sep='\n')
 list_ids = []  # список объектов canvas
 points = [[-1 for i in range(s_x)] for i in range(s_y)]  # Список координит, куда уже кликали мышкой
@@ -71,16 +71,35 @@ def button_show_enemy():
                 list_ids.append(_id)
 
 
+def show_my_ships():
+    global list_ids
+    for i in range(0, s_x):
+        plus = menu_x + size_canvas_x
+        for j in range(0, s_y):
+            if my_ships[j][i] > 0: # Если по координатам есть корабль
+                color = 'darkred'
+                # if points[j][i] == 0: # Если по этой клетке был выстрел ЛКМ
+                #     color = 'yellow'
+                _id = canvas.create_rectangle(i * step_x + plus, j * step_y, i * step_x + step_x + plus,
+                                              j * step_y + step_y, fill=color)
+                list_ids.append(_id)
+
+
 def button_begin_again():
     global list_ids
     global points
     global enemy_ships
+    global my_ships
+    global count_boom
+    count_boom = sum(ships_list)
     for elemnt in list_ids:
         canvas.delete(elemnt)
     list_ids = []
     points = [[-1 for i in range(s_x)] for i in range(s_y)]
     # print('МАТРИЦА ПОЛЯ:\n', *points, sep='\n')
     enemy_ships = generate_enemy_ships(ships_list)
+    my_ships = generate_enemy_ships(ships_list)
+    show_my_ships()
 
 
 b0 = Button(tk, text='Показать корабли противника', command=button_show_enemy)
@@ -112,6 +131,7 @@ def draw_point(x, y):
         id1 = canvas.create_oval(x * step_x, y * step_y, x * step_x + step_x, y * step_y + step_y, fill=color)
         list_ids.append(id1)
         count_boom -= 1
+        print(count_boom)
         if count_boom == 0:
             print('ПОБЕДА!!!')
             button_show_enemy()
@@ -210,6 +230,9 @@ def generate_enemy_ships(ships_list):
 
 
 enemy_ships = generate_enemy_ships(ships_list)
+my_ships = generate_enemy_ships(ships_list)
+show_my_ships()
+
 
 while app_running:
     if app_running:
