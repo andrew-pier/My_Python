@@ -89,7 +89,7 @@ def show_my_ships():
                                                   i * step_x + step_x + size_canvas_x + menu_x,
                                                   j * step_y + step_y, fill=color)
                     list_ids.append(_id)
-                    list_show_ships2_ids.append(_id)
+                    list_show_ships2_ids.append(_id)  # Список открытых кораблей
     else:
         for elemnt in list_show_ships2_ids:
             canvas.delete(elemnt)
