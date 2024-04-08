@@ -112,12 +112,87 @@ def check_win():
 
 
 
+def direction(x, y, ships):  # ОПРЕДЕЛЯЕМ НАПРАВЛЕНИЕ КОРАБЛЯ
+    # print('длина корабля = ', ships[y][x])
+    linee = ""  # горизонтальное либо вертикальное расположение корабля
+    right_check = left_check = up_check = below_check = 1
+    if x + 1 > 9:  # проверяем, что корабль не расположен на краю поля
+        right_check = -1  # если корабль на правом краю поля, не проверяем соседнюю правую клетку, что бы не выйти за пределы массива
+    if x - 1 < 0:
+        left_check = -1
+    if y + 1 > 9:
+        below_check = -1
+    if y - 1 < 0:
+        up_check = -1
+
+    if ships[y][x - left_check] == ships[y][x] or ships[y][x + right_check] == ships[y][x]:
+        linee = 'horizont'
+    elif ships[y - up_check][x] == ships[y][x] or ships[y + below_check][x] == ships[y][x]:
+        linee = 'vertical'
+    # print(linee)
+    return linee
+
+
+def dead_or_alive(x, y, linee, ships, points):  # ПРОВЕРЯЕМ РАНЕН ИЛИ УБИТ возвращает статус и если убит,
+    # то все клетки корабля по X или Y (горизонт. или вертикаль. соответственно)
+    dead_x = []
+    dead_y = []
+    if linee == 'horizont':
+        print('точка входа ', x)
+        # ЦИКЛ В МИНУС ГОРИЗОНТАЛЬНОЕ РАСПОЛОЖЕНИЕ
+        n = 0
+        for i in range(ships[y][x]):  # цикл в минус
+            if x - i < 0:  # Проверяем, не вышли ли мы за пределы поля
+                n = ships[y][x] - i + 1  # Добавим 1, что бы в цикле на "+" пропустить нулевую итеррацию
+                break
+            if ships[y][x - i] != 0:
+                dead_x.append(x - i)
+                if points[y][x - i] != 0:
+                    return 'РАНЕН!', [], []
+            else:
+                #n = i + 1
+                n = ships[y][x] - len(dead_x)
+                break
+        # ЦИКЛ В ПЛЮС
+        for i in range(1, n + 1, 1):  # Цикл в плюс
+            if ships[y][x + i] != 0:
+                dead_x.append(x + i)
+                if points[y][x + i] != 0:
+                    return 'РАНЕН!', [], []
+
+    if linee == 'vertical':
+        # ЦИКЛ В МИНУС ВЕРТИКАЛЬНОЕ РАСПОЛОЖЕНИЕ
+        n = 0
+        for i in range(ships[y][x]):  # цикл в минус
+            if y - i < 0:  # Проверяем, не вышли ли мы за пределы поля
+                n = ships[y][x] - i + 1  # Добавим 1, что бы в цикле на "+" пропустить нулевую итеррацию
+                break
+            if ships[y - i][x] != 0:
+                dead_y.append(y - i)
+                if points[y - i][x] != 0:
+                    return 'РАНЕН!', [], []
+            else:
+                #n = i + 1
+                n = ships[y][x] - len(dead_y)
+                break
+        # ЦИКЛ В ПЛЮС
+        for i in range(1, n + 1, 1):  # Цикл в плюс
+            if ships[y + i][x] != 0:
+                dead_y.append(y + i)
+                if points[y + i][x] != 0:
+                    return 'РАНЕН!', [], []
+    return 'УБИТ!!!', dead_x, dead_y
+
+
+
+
 
 def button_begin_again():
     global list_ids
     global points, points2
     global enemy_ships, my_ships
     global count_boom, count_boom2
+    global your_move
     for elemnt in list_ids:
         canvas.delete(elemnt)
     list_ids = []
@@ -127,6 +202,7 @@ def button_begin_again():
     # print('МАТРИЦА ПОЛЯ:\n', *points, sep='\n')
     enemy_ships = generate_enemy_ships(ships_list)
     my_ships = generate_enemy_ships(ships_list)
+    your_move = True  # Ход 1-го игрока
 
 
 b0 = Button(tk, text='Показать корабли противника', command=button_show_enemy)
@@ -141,20 +217,20 @@ b2.place(x=size_canvas_x + menu_x / 8, y=90, width=menu_x / 4 * 3)
 
 def draw_point(x, y, point, ship):
     global your_move
-    print('POINTS 2-draw point:\n', *points2, sep='\n')
-    print(f'Нвжвты координаты  X= {x}, Y= {y}, point = {point}')
+    # print('POINTS 2-draw point:\n', *points2, sep='\n')
+    # print(f'Нвжвты координаты  X= {x}, Y= {y}, point = {point}')
     if point > 1:  # Если в мвтрице POINTS по этим координатам уже есть id
         print(f'POINT= {point}')
         canvas.delete(point)
         list_ids.remove(point)
         point = -1
         return point, 0
-    elif point == 1: # Если кликнули ПКМ, рисуем зел. кружок и пишем его id в матрицу POINTS
+    elif point == 1: # Если кликнули ПКМ, рисуем голубой кружок и пишем его id в матрицу POINTS
         color = 'lightblue'
     elif ship != 0:
         color = 'red'
         #count_boom -= 1
-        #print(f'Осталось {count_boom} {enemy_ships[y][x]}-х палубник))')
+        print(f'Осталось {count_boom} {ship}-х палубник))')
     else:
         color = 'blue'
         your_move = not your_move
@@ -165,8 +241,13 @@ def draw_point(x, y, point, ship):
     return point, color
 
 
+def draw_dead ():
+    pass
+
+
 def add_to_all(event):
     global count_boom, count_boom2
+    color = linee = ""
     _type = 0  # ЛКМ
     if event.num == 3:
         _type = 1  # ПКМ
@@ -189,6 +270,27 @@ def add_to_all(event):
             point = points[ip_y][ip_x]
             points[ip_y][ip_x], color = draw_point(ip_x, ip_y, point, ship)
         if color == 'red':
+            if enemy_ships[ip_y][ip_x] == 1:
+                id1 = canvas.create_oval(ip_x * step_x, ip_y * step_y, ip_x * step_x + step_x, ip_y * step_y + step_y,
+                                         fill='darkred')
+                list_ids.append(id1)
+            linee = direction(ip_x, ip_y, enemy_ships)
+            status, x, y = dead_or_alive(ip_x, ip_y, linee, enemy_ships, points)
+            print(status)
+            if x != []:
+                for i in x:
+                    id1 = canvas.create_oval(i * step_x, ip_y * step_y, i * step_x + step_x, ip_y * step_y + step_y,
+                                             fill='darkred')
+                    list_ids.append(id1)
+                    print(i, ip_y)
+                print(x)
+            if y != []:
+                for i in y:
+                    id1 = canvas.create_oval(ip_x * step_x, i * step_y, ip_x * step_x + step_x, i * step_y + step_y,
+                                             fill='darkred')
+                    list_ids.append(id1)
+                    print(ip_x, i)
+                print(y)
             count_boom -=1
             print('count_boom=', count_boom)
             check_win()
@@ -204,6 +306,29 @@ def add_to_all(event):
             point = points2[ip_y][x]
             points2[ip_y][x], color = draw_point(x, ip_y, point, ship)
         if color == 'red':
+
+            if my_ships[ip_y][x] == 1:
+                id1 = canvas.create_oval(ip_x * step_x, ip_y * step_y, ip_x * step_x + step_x, ip_y * step_y + step_y,
+                                         fill='darkred')
+                list_ids.append(id1)
+            linee = direction(x, ip_y, my_ships)
+            status, x, y = dead_or_alive(x, ip_y, linee, my_ships, points2)
+            print(status)
+            if x != []:
+                for i in x:
+                    id1 = canvas.create_oval((i + s_x + delta_x) * step_x, ip_y * step_y, (i + s_x + delta_x)  * step_x
+                                             + step_x, ip_y * step_y + step_y, fill='darkred')
+                    list_ids.append(id1)
+                    print(i, ip_y)
+                print(x)
+            if y != []:
+                for i in y:
+                    id1 = canvas.create_oval(ip_x * step_x, i * step_y, ip_x * step_x + step_x, i * step_y + step_y,
+                                             fill='darkred')
+                    list_ids.append(id1)
+                    print(x, i)
+                print(y)
+
             count_boom2 -=1
             print('count_boom2=', count_boom2)
             check_win()
