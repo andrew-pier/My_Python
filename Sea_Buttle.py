@@ -24,8 +24,12 @@ list_ids = []  # список объектов canvas
 points = [[-1 for i in range(s_x)] for i in range(s_y)]  # Список координит, куда уже кликали мышкой
 points2 = [[-1 for i in range(s_x)] for i in range(s_y)]  # Список координит, куда противник кликал мышкой
 count_boom = count_boom2 = sum(ships_list)  # Счётчик попаданий = сумме палуб всех кораблей
-list_show_ships2_ids = list_show_ships_ids = []  # Список ID показанных корабле
+list_show_ships_ids = []  # Список ID показанных корабле
+list_show_ships2_ids = []  # Список ID показанных корабле
+killed_ships1 = []  # Список подбитых еораблей
+killed_ships2 = []  # Список подбитых еораблей
 your_move = True  # Ход 1-го игрока
+vs_computer = False # Игра против компьютера
 
 
 def draw_table(offset_x=0):  # Рисуем клетки на поле
@@ -111,6 +115,14 @@ def check_win():
         print('УРАААА!!!')
 
 
+def biggest_ship (killed_ships):
+    temp_list = ships_list[:]
+    [temp_list.remove(i) for i in killed_ships]
+    if temp_list:
+        print('BIGGEST SHIP - ', temp_list[0])
+        print('Осталось: ', temp_list)
+
+
 
 def direction(x, y, ships):  # ОПРЕДЕЛЯЕМ НАПРАВЛЕНИЕ КОРАБЛЯ
     # print('длина корабля = ', ships[y][x])
@@ -150,7 +162,6 @@ def dead_or_alive(x, y, linee, ships, points):  # ПРОВЕРЯЕМ РАНЕН 
                 if points[y][x - i] != 0:
                     return 'РАНЕН!', [], []
             else:
-                #n = i + 1
                 n = ships[y][x] - len(dead_x)
                 break
         # ЦИКЛ В ПЛЮС
@@ -172,7 +183,6 @@ def dead_or_alive(x, y, linee, ships, points):  # ПРОВЕРЯЕМ РАНЕН 
                 if points[y - i][x] != 0:
                     return 'РАНЕН!', [], []
             else:
-                #n = i + 1
                 n = ships[y][x] - len(dead_y)
                 break
         # ЦИКЛ В ПЛЮС
@@ -241,12 +251,9 @@ def draw_point(x, y, point, ship):
     return point, color
 
 
-def draw_dead ():
-    pass
-
-
 def add_to_all(event):
     global count_boom, count_boom2
+    global killed_ships1, killed_ships2
     color = linee = ""
     _type = 0  # ЛКМ
     if event.num == 3:
@@ -277,20 +284,20 @@ def add_to_all(event):
             linee = direction(ip_x, ip_y, enemy_ships)
             status, x, y = dead_or_alive(ip_x, ip_y, linee, enemy_ships, points)
             print(status)
-            if x != []:
+            if x != [] or y != [] or ship == 1:
+                killed_ships1.append(ship)
+                biggest_ship(killed_ships1)
+                print('ktlled ships1 = ', killed_ships1)
+            if x:  # x != []
                 for i in x:
                     id1 = canvas.create_oval(i * step_x, ip_y * step_y, i * step_x + step_x, ip_y * step_y + step_y,
                                              fill='darkred')
                     list_ids.append(id1)
-                    print(i, ip_y)
-                print(x)
             if y != []:
                 for i in y:
                     id1 = canvas.create_oval(ip_x * step_x, i * step_y, ip_x * step_x + step_x, i * step_y + step_y,
                                              fill='darkred')
                     list_ids.append(id1)
-                    print(ip_x, i)
-                print(y)
             count_boom -=1
             print('count_boom=', count_boom)
             check_win()
@@ -314,25 +321,24 @@ def add_to_all(event):
             linee = direction(x, ip_y, my_ships)
             status, x, y = dead_or_alive(x, ip_y, linee, my_ships, points2)
             print(status)
+            if x != [] or y != [] or ship == 1:
+                killed_ships2.append(ship)
+                biggest_ship(killed_ships2)
+                print('ktlled ships2 = ', killed_ships2)
             if x != []:
                 for i in x:
                     id1 = canvas.create_oval((i + s_x + delta_x) * step_x, ip_y * step_y, (i + s_x + delta_x)  * step_x
                                              + step_x, ip_y * step_y + step_y, fill='darkred')
                     list_ids.append(id1)
-                    print(i, ip_y)
-                print(x)
             if y != []:
                 for i in y:
                     id1 = canvas.create_oval(ip_x * step_x, i * step_y, ip_x * step_x + step_x, i * step_y + step_y,
                                              fill='darkred')
                     list_ids.append(id1)
-                    print(x, i)
-                print(y)
 
             count_boom2 -=1
             print('count_boom2=', count_boom2)
             check_win()
-
 
 
 canvas.bind_all("<Button-1>", add_to_all)  # Левая кнопка мыши
