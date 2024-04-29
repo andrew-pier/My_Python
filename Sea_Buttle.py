@@ -22,13 +22,11 @@ enemy_ships = [[0 for i in range(s_x)] for i in range(s_y)]  # Пустая ма
 list_ids = []  # список объектов canvas
 points = [[-1 for i in range(s_x)] for i in range(s_y)]  # Список координит, куда уже кликали мышкой
 points2 = [[-1 for i in range(s_x)] for i in range(s_y)]  # Список координит, куда противник кликал мышкой
-count_boom = count_boom2 = sum(ships_list)  # Счётчик попаданий = сумме палуб всех кораблей
-list_show_ships_ids = []  # Список ID показанных кораблей
-list_show_ships2_ids = []  # Список ID показанных кораблей
 killed_ships1 = []  # Список подбитых еораблей
 killed_ships2 = []  # Список подбитых еораблей
 your_move = True  # Ход 1-го игрока
 vs_computer = True  # Игра против компьютера
+win = False
 add_label = ' (Computer)' if vs_computer else ''
 
 
@@ -55,6 +53,10 @@ canvas = Canvas(tk, width=size_canvas_x * 2 + menu_x, height=size_canvas_y + men
 canvas.create_rectangle(0, 0, size_canvas_x, size_canvas_y, fill="white")  # РИСУЕМ ПОЛЕ №1:
 canvas.create_rectangle(size_canvas_x + menu_x, 0, size_canvas_x * 2 + menu_x, size_canvas_y,
                         fill="lightblue")  # РИСУЕМ ПОЛЕ №2:
+canvas.create_rectangle(size_canvas_x, 0, size_canvas_x + menu_x, size_canvas_y // 2,
+                        fill="white")  # РИСУЕМ МЕНЮ №1:
+canvas.create_rectangle(size_canvas_x, size_canvas_y // 2, size_canvas_x + menu_x, size_canvas_y,
+                        fill='#D7ECF2')  # РИСУЕМ МЕНЮ №2:
 canvas.pack()
 tk.update()
 
@@ -67,7 +69,58 @@ t1 = Label(tk, text='Игрок №2' + add_label, font=('Helvetica', 16))
 t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2, y=size_canvas_y + 3)
 t0.configure(background='red')
 t0.configure(background='white')
+print('ythgrhtykutrhgbnmjtujfhfggduykutrrddtjukyutjngfbrtymikut')
 
+
+def button_begin_again():
+    global list_ids
+    global points, points2
+    global enemy_ships, my_ships
+    global your_move, win
+    global killed_ships1, killed_ships2
+    global vs_computer
+    print('begin gain, ', add_label)
+    for elemnt in list_ids:
+        canvas.delete(elemnt)
+    list_ids = []
+    killed_ships1 = []
+    killed_ships2 = []
+    points = [[-1 for i in range(s_x)] for i in range(s_y)]
+    points2 = [[-1 for i in range(s_x)] for i in range(s_y)]
+    # print('МАТРИЦА ПОЛЯ:\n', *points, sep='\n')
+    enemy_ships = generate_enemy_ships(ships_list)
+    my_ships = generate_enemy_ships(ships_list)
+    your_move = True  # Ход 1-го игрока
+    win = False
+    if vs_computer: show_my_ships()
+    t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2, y=size_canvas_y + 3)
+
+
+def change_rb():
+    global vs_computer, add_label
+    if sum(x.count(0) for x in points2):
+        if not messagebox.askokcancel("Перезапуск игры", "Хотите начать заново?"):
+            rb2.select() if rb_var.get() else rb1.select()
+            return
+    # print(rb_var.get())
+    if rb_var.get():
+        vs_computer = True
+        t1['text'] = 'Игрок №2 (Computer)'
+    else:
+        vs_computer = False
+        t1['text'] = 'Игрок №2'
+    button_begin_again()
+
+
+
+rb_var = BooleanVar()
+rb1 = Radiobutton(tk, text='Player vs. Computer', variable=rb_var, value=1, command=change_rb)
+rb2 = Radiobutton(tk, text='Player vs. Player', variable=rb_var, value=0, command=change_rb)
+rb1.place(x=size_canvas_x + menu_x / 8, y=120)  # отступ кнопки 1/8 от меню, ширина = 3/4 от меню
+rb2.place(x=size_canvas_x + menu_x / 8, y=140)
+if vs_computer:
+    rb1.select()
+else: rb2.select()
 
 def button_show_enemy():
     for i in range(0, s_x):
@@ -96,17 +149,27 @@ def show_my_ships():
 
 def check_win():
     global points, points2
-    print('killed_ships1', killed_ships1)
-    print('killed_ships2', killed_ships2)
+    global win
+    global your_move
+    survivors = ships_list[:]
+    for i in killed_ships1:
+        survivors.remove(i)
+    print(f'killed_ships1  {killed_ships1} остались - {survivors}')
+    survivors = ships_list[:]
+    for i in killed_ships2:
+        survivors.remove(i)
+    print(f'killed_ships2  {killed_ships2} остались - {survivors}')
     if len(killed_ships1) == len(enemy_ships):
-        win = 'ПОБЕДА ИГРОКА 1!!!'
+        winner = 'ПОБЕДА ИГРОКА 1!!!'
     elif len(killed_ships2) == len(enemy_ships):
-        win = 'ПОБЕДА ИГРОКА 2!!!'
+        winner = 'ПОБЕДА ИГРОКА 2!!!'
     else: return
     button_show_enemy()
     show_my_ships()
     points = points2 = [[10 for i in range(s_x)] for i in range(s_y)]  # Заполняем весь список координат
-    print(win, ' УРАААА!!!')
+    win = True
+    your_move = True
+    print(winner, ' УРАААА!!!')
 
 
 def biggest_ship(killed_ships):
@@ -184,27 +247,7 @@ def dead_or_alive(x, y, linee, ships, points):  # ПРОВЕРЯЕМ РАНЕН 
     dead_x.sort()
     dead_y.sort()
     status = 'УБИТ!' if len(dead_x) == ships[y][x] or len(dead_y) == ships[y][x] else 'РАНЕН!'
-    print('187  dead_or_alive = ', status, dead_x, dead_y)
     return status, dead_x, dead_y
-
-
-def button_begin_again():
-    global list_ids
-    global points, points2
-    global enemy_ships, my_ships
-    global count_boom, count_boom2
-    global your_move
-    for elemnt in list_ids:
-        canvas.delete(elemnt)
-    list_ids = []
-    count_boom = count_boom2 = sum(ships_list)
-    points = [[-1 for i in range(s_x)] for i in range(s_y)]
-    points2 = [[-1 for i in range(s_x)] for i in range(s_y)]
-    # print('МАТРИЦА ПОЛЯ:\n', *points, sep='\n')
-    enemy_ships = generate_enemy_ships(ships_list)
-    print('МАТРИЦА ПОЛЯ:\n', *enemy_ships, sep='\n')
-    my_ships = generate_enemy_ships(ships_list)
-    your_move = True  # Ход 1-го игрока
 
 
 b0 = Button(tk, text='Показать корабли противника', command=button_show_enemy)
@@ -219,13 +262,7 @@ b2.place(x=size_canvas_x + menu_x / 8, y=90, width=menu_x / 4 * 3)
 
 def draw_point(x, y, point, ship):  # координаты удара x, y; point - клик мыши 0 или 1....
     global your_move
-    # print('POINTS 2-draw point:\n', *points2, sep='\n')
-    if not your_move:
-        print(f'DRAW_POINT. Нвжвты координаты  X= {x - 14}, Y= {y}, point = {point}')
-    else:
-        print(f'Нвжвты координаты  X= {x}, Y= {y}, point = {point}')
-    if point > 1:  # Если в мвтрице POINTS по этим координатам уже есть id
-        print(f'POINT= {point}')
+    if point > 1:  # Если в матрице POINTS по этим координатам уже есть id
         canvas.delete(point)
         list_ids.remove(point)
         point = -1
@@ -233,15 +270,12 @@ def draw_point(x, y, point, ship):  # координаты удара x, y; poin
     elif point == 1:  # Если кликнули ПКМ, рисуем голубой кружок и пишем его id в матрицу POINTS
         color = 'lightblue'
     elif ship != 0:
-        print('color = red')
         color = 'red'
-        #count_boom -= 1
-        #print(f'Осталось {count_boom} {ship}-х палубник))')
+        # if vs_computer and not your_move:
+        #     time.sleep(1)
     else:
         color = 'blue'
-        print("color = 'blue'")
         your_move = not your_move
-        print('your_move -', your_move)
     id1 = canvas.create_oval(x * step_x, y * step_y, x * step_x + step_x, y * step_y + step_y, fill=color)
     list_ids.append(id1)
     if color == 'lightblue':
@@ -251,8 +285,6 @@ def draw_point(x, y, point, ship):  # координаты удара x, y; poin
 
 def around_destroyed_ship(x, y):  # ОБРИСОВЫВАЕМ ПОДБИТЫЙ КОРАБЛЬ
     global points2
-
-    print('around_destroyed - [x]', x, ' [y]', y)
 
     if type(x) == int:
         x = [x]
@@ -267,8 +299,6 @@ def around_destroyed_ship(x, y):  # ОБРИСОВЫВАЕМ ПОДБИТЫЙ К
     if max(y) < 9:
         y.append(max(y) + 1)
 
-    print('==========================')
-    print('around_destroyed - [x]', x,' [y]', y)
     for i in x:
         for j in y:
             points2[j][i] = 0
@@ -277,14 +307,16 @@ def around_destroyed_ship(x, y):  # ОБРИСОВЫВАЕМ ПОДБИТЫЙ К
             #                          j * step_y + step_y,
             #                          fill='lightblue')
             ###########################################################################################################
-    print(x, y)
-    print('МАТРИЦА ПОЛЯ:\n', *points2, sep='\n')
-    print()
+    # print(x, y)
+    # print('МАТРИЦА ПОЛЯ:\n', *points2, sep='\n')
+    # print()
 
 
 def auto_killer(x, y):
     global points2, my_ships, killed_ships2
     draw_x = s_x + delta_x  # Поправка на Х для отрисовки объектов на втором поле.
+    tk.update()
+    time.sleep(0.5)
 
     # ДЕЛАЕМ ВЫСТРЕЛ ПО ДАННЫМ КООРДИНАТАМ
     points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
@@ -327,7 +359,7 @@ def auto_killer(x, y):
                 if x == s_x: break
                 # ДЕЛАЕМ ВЫСТРЕЛ ПО НОВЫМ КООРДИНАТАМ
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
-                # !!!!!!!! НУЖНА ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ !!!!!!!!!!!!
+                # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
                 if status == 'УБИТ!':
                     for i in dead_x:
@@ -340,7 +372,6 @@ def auto_killer(x, y):
                     killed_ships2.append(my_ships[y][x])
                     check_win()
                     return
-                    #######################################################################
                 # Если промазали, то обозначаем клетку первого попадания как 'r' и выходим из auto_killer
                 if color != 'red':
                     points2[previous_y][previous_x] = 'r'
@@ -356,7 +387,7 @@ def auto_killer(x, y):
                 if x < 0: break
                 # ДЕЛАЕМ ВЫСТРЕЛ ПО НОВЫМ КООРДИНАТАМ
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
-                # !!!!!!!! НУЖНА ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ !!!!!!!!!!!!
+                # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
                 if status == 'УБИТ!':
                     for i in dead_x:
@@ -369,13 +400,9 @@ def auto_killer(x, y):
                     killed_ships2.append(my_ships[y][x])
                     check_win()
                     return
-                    #######################################################################
-            print('371  ДОСРОЧНЫЙ ВЫХОД ИХ ЦИКЛА Auto_Killer X- движение в левую сторону')
             points2[previous_y][previous_x] = 'r' # Обозначаем клетку первого попадания как 'r'
             # и выходим из auto_killer
-            print('МАТРИЦА POINTS2:\n', *enemy_ships, sep='\n')
             return
-
 
     if y > 0:  # ЕСЛИ КОРАБЛЬ НЕ НА КРАЙНЕЙ ВЕРХНЕЙ ГПАНИЦЕ.
         if points2[y - 1][x] != 0:  # Проверяем, что раньше мы не стреляли по соседней верхней клетке.
@@ -385,7 +412,7 @@ def auto_killer(x, y):
                 if y < 0: break
                 # ДЕЛАЕМ ВЫСТРЕЛ ПО НОВЫМ КООРДИНАТАМ
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
-                # !!!!!!!! НУЖНА ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ !!!!!!!!!!!!
+                # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
                 if status == 'УБИТ!':
                     for i in dead_x:
@@ -398,10 +425,8 @@ def auto_killer(x, y):
                     killed_ships2.append(my_ships[y][x])
                     check_win()
                     return
-                    #######################################################################
                 if color != 'red':
                     points2[previous_y][previous_x] = 'r'
-                    print('МАТРИЦА POINTS2:\n', *enemy_ships, sep='\n')
                     return
             x, y = previous_x, previous_y  # Если достигли крайнего правого поля,
             #                              то меняем координаты на точку первого попадания.
@@ -415,7 +440,7 @@ def auto_killer(x, y):
                 if y == s_y: break
                 # ДЕЛАЕМ ВЫСТРЕЛ ПО НОВЫМ КООРДИНАТАМ
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
-                # !!!!!!!! НУЖНА ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ !!!!!!!!!!!!
+                # УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
                 if status == 'УБИТ!':
                     for i in dead_x:
@@ -428,145 +453,40 @@ def auto_killer(x, y):
                     killed_ships2.append(my_ships[y][x])
                     check_win()
                     return
-                    #######################################################################
-            print('427  ДОСРОЧНЫЙ ВЫХОД ИХ ЦИКЛА Auto_Killer Y- движение вниз.')
             points2[previous_y][previous_x] = 'r'  # Обозначаем клетку первого попадания как 'r'
             # и выходим из auto_killer
-            print('МАТРИЦА POINTS2:\n', *enemy_ships, sep='\n')
             return
-    # ============================ OLD VERSION ========================================================================
-    # global points2, my_ships, killed_ships2, count_boom2
-    # draw_x = s_x + delta_x  # Поправка на Х для отрисовки объектов на втором поле.
-    #
-    # # ДЕЛАЕМ ВЫСТРЕЛ ПО ДАННЫМ КООРДИНАТАМ
-    # points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
-    #
-    # # ЕСЛИ КОРАБЛЬ ОДНОПАЛУБНЫЙ
-    # if my_ships[y][x] == 1:
-    #     id1 = canvas.create_oval((x + draw_x) * step_x, y * step_y, (x + draw_x) * step_x + step_x,
-    #                              y * step_y + step_y, fill='darkred')
-    #     list_ids.append(id1)
-    #     around_destroyed_ship(x, y)
-    #     killed_ships2.append(my_ships[y][x])
-    #     check_win()
-    #     return
-    #
-    # # ЕСЛИ ПРОМАЗАЛИ
-    # if color != 'red':
-    #     print('пустой выстрел. your_move -', your_move, '\n')
-    #     return
-    #
-    # linee = direction(x, y, my_ships)
-    # status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
-    #
-    # # ЕСЛИ КОРАБЛЬ РАНЕЕ НЕДОБИТ.========================================================================
-    # if len(dead_x) > 1 or len(dead_y) > 1:
-    #     if len(dead_x) > len(dead_y):  # Или 'if linee == 'horizontal'
-    #         x = min(dead_x)
-    #     else:
-    #         y = max(dead_y)
-    #     print('ЕСЛИ КОРАБЛЬ РАНЕЕ НЕДОБИТ - x', x, 'y', y)
-    # # =====================================================================================================
-    #
-    # # НАЧИНАЕМ ПЕРЕБОР ПО КЛЕТКАМ
-    # while status == 'РАНЕН!':
-    #     if x < 9 and len(dead_y) == 1:
-    #         if points2[y][x + 1] != 0:
-    #             x += 1
-    #             # ДЕЛАЕМ ВЫСТРЕЛ ПО НОВЫМ КООРДИНАТАМ
-    #             points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
-    #             if color == 'red':
-    #                 status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
-    #                 continue  # Если попали, обновляем STATUS и идём на начало цикла
-    #             points2[y][x - 1] = 'r'  # Если промазали, отмечаем предыдущую клетку меткой 'r' и уходим.
-    #             print('your_move ', your_move)
-    #             print()
-    #             return
-    #
-    #     if x > 0 and len(dead_y) == 1:
-    #         if points2[y][x - 1] != 0:
-    #             x -= 1
-    #             # ДЕЛАЕМ ВЫСТРЕЛ ПО НОВЫМ КООРДИНАТАМ
-    #             points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
-    #             if color == 'red':
-    #                 status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
-    #                 continue  # Если попали, обновляем STATUS и идём на начало цикла
-    #             points2[y][x + 1] = 'r'  # Если промазали, отмечаем предыдущую клетку меткой 'r' и уходим.
-    #             print('your_move ', your_move)
-    #             print()
-    #             return
-    #
-    #     if y > 0:
-    #         if points2[y - 1][x] != 0: # or my_ships[y - 1][x] != 0:
-    #             y -= 1
-    #             points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])  # делаем выстрел по данным координатам
-    #             if color == 'red':
-    #                 status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
-    #                 continue  # Если попали, обновляем STATUS и идём на начало цикла
-    #             points2[y + 1][x] = 'r'  # Если промазали, отмечаем предыдущую клетку меткой 'r' и уходим.
-    #             print('357 y- МАТРИЦА POINTS2:\n', *points2, sep='\n')
-    #             print('your_move ', your_move)
-    #             print()
-    #             return
-    #
-    #     if y < 9:
-    #         if points2[y + 1][x] != 0: # or my_ships[y + 1][x] != 0:
-    #             y += 1
-    #             points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])  # делаем выстрел по данным координатам
-    #             if color == 'red':
-    #                 status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
-    #                 continue  # Если попали, обновляем STATUS и идём на начало цикла
-    #             points2[y - 1][x] = 'r'  # Если промазали, отмечаем предыдущую клетку меткой 'r' и уходим.
-    #             print('365 y+ МАТРИЦА POINTS2:\n', *points2, sep='\n')
-    #             print('your_move ', your_move)
-    #             print()
-    #             return
-    # print('THE END auto_killer!!!!!!!!!')
-    # if status == 'УБИТ!':
-    #     for i in dead_x:
-    #         for j in dead_y:
-    #             id1 = canvas.create_oval((i + draw_x) * step_x, j * step_y, (i + draw_x) * step_x + step_x,
-    #                                      j * step_y + step_y, fill='darkred')
-    #             list_ids.append(id1)
-    #     around_destroyed_ship(dead_x,dead_y)
-    #     killed_ships2.append(my_ships[y][x])
-    #     check_win()
-    # print('380 return')
-    # return
 
 
 def step_computer():
-    if your_move:
-        print('Ход игрока 1\n')
-    else:
-        print('Ходит клмпьютер\n')  # Знвчение your_move при отрисовке кружочка(хода)
+    # if your_move:
+    #     print('Ход игрока 1\n')
+    # else:
+    #     print('Ходит клмпьютер\n')  # Знвчение your_move при отрисовке кружочка(хода)
     global killed_ships2
     global points2, my_ships
     while not your_move:
         big = biggest_ship(killed_ships2)  # максимально большой оставшийся корабль
         begin = 0  # Первая клетка отсчёта
-        print(' step_computer. Найдено r - ', sum(x.count('r') for x in points2))
         if sum(x.count('r') for x in points2):
-            print('Найдена "r" Идём на auto_killer')
             for i in range(10):  # Находим ячейку с отметкой R
                 if points2[i].count('r'):
                     x = points2[i].index('r')
                     y = i
-                    print('Ячейка с "R" X', x, 'Y', y, ' =', points2[y][x])
-                    points2[y][x] = 0 ##### !!!!!!!!!!!!!!!!1
-            print('403 auto_killer-', x, y)
+                    points2[y][x] = 0
             auto_killer(x, y)
-            print('409 Возврат после R. yuor_move- ', your_move)
+            if win: return
             if your_move: return
             big = biggest_ship(killed_ships2)  # максимально большой оставшийся корабль
         # НАЧИНАЕМ АЛГОРИТМ ПОИСКА КЛЕТКИ
         for y in range(10):
             for x in range(begin, 10, big):
                 if points2[y][x] == -1:
-                    print('NEW CYCLE  points2[y][x]', points2[y][x])
-                    print('410 auto_killer-', x, y)
-                    auto_killer(x, y)
-                    if your_move: return
+                    chans = random.randrange(0, 3)
+                    if chans == 1:
+                        auto_killer(x, y)
+                        if win: return
+                        if your_move: return
             begin += 1
             print('')
             if begin == big:
@@ -574,8 +494,8 @@ def step_computer():
 
 
 def add_to_all(event):
-    global count_boom, count_boom2
     global killed_ships1, killed_ships2
+    global vs_computer
     color = ""
     _type = 0  # ЛКМ
     if event.num == 3:
@@ -590,11 +510,7 @@ def add_to_all(event):
     ip_y = mouse_y // step_y
 
     # ПРОВЕРЯЕМ КООРДИНАТЫ КЛИКА В ПРЕДЕЛАХ ПОЛЯ № 1
-    if your_move:
-        print('Ход игрока 1')
-    else:
-        print('Ходит клмпьютер')  # Знвчение your_move при отрисовке кружочка(хода)
-    if ip_x < s_x and ip_y < s_y and your_move:  # Если клик мыши в пределах игрового поля
+    if ip_x < s_x and ip_y < s_y and your_move and not win:  # Если клик мыши в пределах игрового поля 1
         ship = enemy_ships[ip_y][ip_x]
         if points[ip_y][ip_x] == -1:  # Если в списке POINTS по данным  координатам -1, т.е. пустое поле
             point = _type  # то пишем туда клик мыши
@@ -613,14 +529,11 @@ def add_to_all(event):
             if status == 'УБИТ!':
                 killed_ships1.append(ship)
                 biggest_ship(killed_ships1)
-                print('ktlled ships1 = ', killed_ships1)
                 for i in x:
                     for j in y:
                         id1 = canvas.create_oval(i * step_x, j * step_y, i * step_x + step_x,
                                                  j * step_y + step_y, fill='darkred')
                         list_ids.append(id1)
-                # count_boom -= 1
-                # print('count_boom=', count_boom)
                 check_win()
     if vs_computer and not your_move:
         step_computer()
@@ -643,14 +556,11 @@ def add_to_all(event):
             if status == 'УБИТ!':
                 killed_ships2.append(ship)
                 biggest_ship(killed_ships2)
-                print('ktlled ships2 = ', killed_ships2)
                 for i in x:
                     for j in y:
                         id1 = canvas.create_oval((i + s_x + delta_x) * step_x, j * step_y, (i + s_x + delta_x) * step_x
                                                  + step_x, j * step_y + step_y, fill='darkred')
                         list_ids.append(id1)
-                # count_boom2 -= 1
-                # print('count_boom2=', count_boom2)
                 check_win()
 
 
