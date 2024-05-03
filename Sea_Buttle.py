@@ -38,6 +38,14 @@ def draw_table(offset_x=0):  # Рисуем клетки на поле
     for i in range(0, s_y + 1):
         canvas.create_line(offset_x, i * step_y, size_canvas_y + offset_x, i * step_y)
 
+    second_pole = 0
+    for n in range(2):
+        for i in range(len(letters)):
+            label = Label(tk, text=letters[i], font=('Helvetica', 12))
+            c = i * step_y + (step_y / 2 - 6)
+            label.place(x=c + second_pole, y=6)
+        second_pole = size_canvas_y + menu_x
+
 
 def on_closing():  # Закрываем окно программы
     global app_running
@@ -59,6 +67,13 @@ canvas.create_rectangle(size_canvas_x, 0, size_canvas_x + menu_x, size_canvas_y 
                         fill="white")  # РИСУЕМ МЕНЮ №1:
 canvas.create_rectangle(size_canvas_x, size_canvas_y // 2, size_canvas_x + menu_x, size_canvas_y,
                         fill='#D7ECF2')  # РИСУЕМ МЕНЮ №2:
+# РИСУЕМ ВЕРХНЕЕ БУКВЕННОЕ ПОЛЕ
+abc_y = step_y * 0.66  # высота буквенной зоны
+abc = Canvas(tk, width=size_canvas_x * 2 + menu_x, height=abc_y, bd=0, highlightthickness=0)
+abc.create_rectangle(0, 0, size_canvas_x, abc_y, fill="white", outline='white')
+abc.create_rectangle(size_canvas_x + menu_x, 0, size_canvas_x * 2 + menu_x, abc_y, fill="white", outline='white')
+
+abc.pack()
 canvas.pack()
 tk.update()
 
@@ -66,9 +81,9 @@ draw_table()  # рисуем клетки на 1-м поле
 draw_table(size_canvas_x + menu_x)  # рисуем клетки на 2-м поле
 
 t0 = Label(tk, text='Игрок №1', font=('Helvetica', 16))
-t0.place(x=size_canvas_x // 2 - t0.winfo_reqwidth() // 2, y=size_canvas_y + 3)
+t0.place(x=size_canvas_x // 2 - t0.winfo_reqwidth() // 2, y=size_canvas_y + abc_y + 3)
 t1 = Label(tk, text='Игрок №2' + add_label, font=('Helvetica', 16))
-t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2, y=size_canvas_y + 3)
+t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2, y=size_canvas_y + abc_y + 3)
 t0.configure(background='red')
 t0.configure(background='white')
 
@@ -205,15 +220,15 @@ def change_rb():
 rb_var = BooleanVar()
 rb1 = Radiobutton(tk, text='Player vs. Computer', variable=rb_var, value=1, command=change_rb)
 rb2 = Radiobutton(tk, text='Player vs. Player', variable=rb_var, value=0, command=change_rb)
-rb1.place(x=size_canvas_x + menu_x / 8, y=40)  # отступ кнопки 1/8 от меню, ширина = 3/4 от меню
-rb2.place(x=size_canvas_x + menu_x / 8, y=60)
+rb1.place(x=size_canvas_x + menu_x / 8, y=40 + abc_y)  # отступ кнопки 1/8 от меню, ширина = 3/4 от меню
+rb2.place(x=size_canvas_x + menu_x / 8, y=60 + abc_y)
 if vs_computer:
     rb1.select()
 else: rb2.select()
 
 text = Text(width=23, height=5,bg="#323dbc", fg='#d2eaf4', wrap=WORD)
-text.place(x=size_canvas_x + 7, y=257)
-text.insert(1.0,'FIGHT!!!' + '\n')
+text.place(x=size_canvas_x + 7, y=size_canvas_y / 2 + 7 + abc_y)
+# text.insert(1.0,'FIGHT!!!' + '\n')
 
 def button_show_enemy():
     for i in range(0, s_x):
@@ -263,8 +278,9 @@ def check_win():
     win = True
     your_move = True
     print(winner, ' УРАААА!!!')
-    text.insert(100000.0, winner, '\n')
-    text.insert(10000.0, 'УРАААА!!!\n')
+    text.insert(1.0, ' \n')
+    text.insert(1.0, winner, '\n')
+    text.insert(1.0, 'УРАААА!!!\n')
 
 
 def biggest_ship(killed_ships):
@@ -353,7 +369,7 @@ def dead_or_alive(x, y, linee, ships, points):  # ПРОВЕРЯЕМ РАНЕН 
 # b1.place(x=size_canvas_x + menu_x / 8, y=150, width=menu_x / 4 * 3)
 
 b2 = Button(tk, text='Начать заново!', command=button_begin_again)
-b2.place(x=size_canvas_x + menu_x / 8, y=10, width=menu_x / 4 * 3)
+b2.place(x=size_canvas_x + menu_x / 8, y=10 + abc_y, width=menu_x / 4 * 3)
 
 
 def draw_point(x, y, point, ship):  # координаты удара x, y; point - клик мыши 0 или 1....
