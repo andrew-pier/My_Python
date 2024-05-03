@@ -16,6 +16,7 @@ delta_x = 4  # Ширина меню в клетках игрового поля
 menu_x = step_x * delta_x  # Место для меню справа от поля
 menu_y = 40  # size_canvas_y / 10  # Место для меню внизу поля
 
+letters = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И', 'К']
 ships_list = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]  # Список все кораблей
 enemy_ships = [[0 for i in range(s_x)] for i in range(s_y)]  # Пустая матрица игнового поля. Заполняем нолями
 # print('МАТРИЦА ПОЛЯ:\n', *enemy_ships, sep='\n')
@@ -161,9 +162,12 @@ def button_begin_again():
     global enemy_ships, my_ships
     global your_move, win
     global killed_ships1, killed_ships2
-    global vs_computer
+    global vs_computer, ids_menu_ships
     for elemnt in list_ids:
         canvas.delete(elemnt)
+    for elemnt in ids_menu_ships:
+        canvas.delete(elemnt)
+    ids_menu_ships = []
     list_ids = []
     killed_ships1 = []
     killed_ships2 = []
@@ -172,9 +176,12 @@ def button_begin_again():
     # print('МАТРИЦА ПОЛЯ:\n', *points, sep='\n')
     enemy_ships = generate_enemy_ships(ships_list)
     my_ships = generate_enemy_ships(ships_list)
+    menu_ships()
     your_move = True  # Ход 1-го игрока
     win = False
+    text.delete("1.0", END)
     if vs_computer: show_my_ships()
+    # ЦЕНТРУЕМ РАСПОЛОЖЕНИЕ НАДПИСИ "ИГРОК №2"
     t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2, y=size_canvas_y + 3)
 
 
@@ -203,6 +210,10 @@ rb2.place(x=size_canvas_x + menu_x / 8, y=60)
 if vs_computer:
     rb1.select()
 else: rb2.select()
+
+text = Text(width=23, height=5,bg="#323dbc", fg='#d2eaf4', wrap=WORD)
+text.place(x=size_canvas_x + 7, y=257)
+text.insert(1.0,'FIGHT!!!' + '\n')
 
 def button_show_enemy():
     for i in range(0, s_x):
@@ -252,6 +263,8 @@ def check_win():
     win = True
     your_move = True
     print(winner, ' УРАААА!!!')
+    text.insert(100000.0, winner, '\n')
+    text.insert(10000.0, 'УРАААА!!!\n')
 
 
 def biggest_ship(killed_ships):
@@ -404,8 +417,10 @@ def auto_killer(x, y):
     # ДЕЛАЕМ ВЫСТРЕЛ ПО ДАННЫМ КООРДИНАТАМ
     points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
 
+
     # ЕСЛИ КОРАБЛЬ ОДНОПАЛУБНЫЙ
     if my_ships[y][x] == 1:
+        text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' УБИТ!!!' + '\n')
         id1 = canvas.create_oval((x + draw_x) * step_x, y * step_y, (x + draw_x) * step_x + step_x,
                                  y * step_y + step_y, fill='darkred')
         list_ids.append(id1)
@@ -417,6 +432,7 @@ def auto_killer(x, y):
 
     # ЕСЛИ ПРОМАЗАЛИ
     if color != 'red':
+        text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + '\n')
         return
 
     linee = direction(x, y, my_ships)
@@ -445,6 +461,7 @@ def auto_killer(x, y):
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
                 # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
+                text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
                 if status == 'УБИТ!':
                     for i in dead_x:
                         for j in dead_y:
@@ -476,6 +493,7 @@ def auto_killer(x, y):
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
                 # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
+                text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
                 if status == 'УБИТ!':
                     for i in dead_x:
                         for j in dead_y:
@@ -504,6 +522,7 @@ def auto_killer(x, y):
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
                 # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
+                text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
                 if status == 'УБИТ!':
                     for i in dead_x:
                         for j in dead_y:
@@ -535,6 +554,7 @@ def auto_killer(x, y):
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
                 # УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
+                text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
                 if status == 'УБИТ!':
                     for i in dead_x:
                         for j in dead_y:
@@ -608,6 +628,7 @@ def add_to_all(event):
         if points[ip_y][ip_x] == -1:  # Если в списке POINTS по данным  координатам -1, т.е. пустое поле
             point = _type  # то пишем туда клик мыши
             points[ip_y][ip_x], color = draw_point(ip_x, ip_y, point, ship)  # и рисуем ПРОИАХ или ПОПАДАНИЕ
+            if color == 'blue': text.insert(1.0, 'ИГРОК 1 - ' + letters[ip_x] + str(ip_y + 1) + '\n')
         elif points[ip_y][ip_x] > 0:  # Если в списке POINTS по данным  координатам есть id
             point = points[ip_y][ip_x]
             points[ip_y][ip_x], color = draw_point(ip_x, ip_y, point, ship)
@@ -619,6 +640,7 @@ def add_to_all(event):
             linee = direction(ip_x, ip_y, enemy_ships)
             status, x, y = dead_or_alive(ip_x, ip_y, linee, enemy_ships, points)
             print(status)
+            text.insert(1.0, 'ИГРОК 1 - ' + letters[ip_x] + str(ip_y + 1) + ' ' + status + '\n')
             if status == 'УБИТ!':
                 killed_ships1.append(ship)
                 biggest_ship(killed_ships1)
@@ -640,6 +662,7 @@ def add_to_all(event):
         if points2[ip_y][x] == -1:  # Если в списке POINTS по данным  координатам -1, т.е. пустое поле
             point = _type  # то пишем туда клик мыши
             points2[ip_y][x], color = draw_point(ip_x, ip_y, point, ship)  # и рисуем ПРОИАХ или ПОПАДАНИЕ
+            if color == 'blue': text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(ip_y + 1) + '\n')
         elif points2[ip_y][x] > 0:  # Если в списке POINTS по данным  координатам есть id
             point = points2[ip_y][x]
             points2[ip_y][x], color = draw_point(x, ip_y, point, ship)
@@ -647,6 +670,7 @@ def add_to_all(event):
             linee = direction(x, ip_y, my_ships)
             status, x, y = dead_or_alive(x, ip_y, linee, my_ships, points2)
             print(status)
+            text.insert(1.0, 'ИГРОК 2 - ' + letters[ip_x - s_x - delta_x] + str(ip_y + 1) + ' ' + status + '\n')
             if status == 'УБИТ!':
                 killed_ships2.append(ship)
                 biggest_ship(killed_ships2)
