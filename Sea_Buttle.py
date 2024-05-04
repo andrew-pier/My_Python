@@ -32,19 +32,31 @@ win = False
 add_label = ' (Computer)' if vs_computer else ''
 
 
-def draw_table(offset_x=0):  # Рисуем клетки на поле
+def draw_table(offset_x=0):
+    # РИСУЕМ КЛЕТКИ НА ПОЛЕ
     for i in range(0, s_x + 1):
         canvas.create_line(i * step_x + offset_x, 0, i * step_x + offset_x, size_canvas_y)
     for i in range(0, s_y + 1):
         canvas.create_line(offset_x, i * step_y, size_canvas_y + offset_x, i * step_y)
 
+    # ПИШЕМ БУКВЕННЫЕ ОБОЗНАЧЕНИЯ ПОЛЕЙ
     second_pole = 0
     for n in range(2):
         for i in range(len(letters)):
             label = Label(tk, text=letters[i], font=('Helvetica', 12))
-            c = i * step_y + (step_y / 2 - 6)
+            c = i * step_y + abc_y + (step_y / 2 - 6)
             label.place(x=c + second_pole, y=6)
         second_pole = size_canvas_y + menu_x
+
+    # ПИШЕМ ЦИФРОВЫЕ ОБОЗНАЧЕНИЯ ПОЛЕЙ
+    second_pole = 0
+    for n in range(2):
+        for i in range(1, 11, 1):
+            label = Label(tk, text=i, font=('Helvetica', 11))
+            #label.place(x=6 + second_pole, y=i * step_y)
+            label.place(x=16 + second_pole, y=i * step_y + 8, anchor='center')
+        second_pole = (size_canvas_x * 2) + menu_x + abc_y
+
 
 
 def on_closing():  # Закрываем окно программы
@@ -58,22 +70,34 @@ tk.protocol("WM_DELETE_WINDOW", on_closing)  # функция при закры�
 tk.title('Игра "Морской бой"')  # Заголовок окна
 tk.resizable(False, False)  # запрещаем изменение размера окна
 tk.wm_attributes("-topmost", 1)  # поверх других окон
-
-canvas = Canvas(tk, width=size_canvas_x * 2 + menu_x, height=size_canvas_y + menu_y, bd=0, highlightthickness=0)
-canvas.create_rectangle(0, 0, size_canvas_x, size_canvas_y, fill="white")  # РИСУЕМ ПОЛЕ №1:
+# ОБОЗНАЧИМ ОБЛАСТЬ ДЛЯ ИГРОВЫХ ПОЛЕЙ
+canvas = Canvas(tk, width=size_canvas_x * 2 + menu_x + 1, height=size_canvas_y + menu_y, bd=0, highlightthickness=0)
+# РИСУЕМ ПОЛЕ №1:
+canvas.create_rectangle(0, 0, size_canvas_x, size_canvas_y, fill="white")
+# РИСУЕМ ПОЛЕ №2:
 canvas.create_rectangle(size_canvas_x + menu_x, 0, size_canvas_x * 2 + menu_x, size_canvas_y,
-                        fill="lightblue")  # РИСУЕМ ПОЛЕ №2:
+                        fill="lightblue")
+# РИСУЕМ ВЕРХНЮЮ ПОЛОВИНУ МЕНЮ:
 canvas.create_rectangle(size_canvas_x, 0, size_canvas_x + menu_x, size_canvas_y // 2,
-                        fill="white")  # РИСУЕМ МЕНЮ №1:
+                        fill="white")
+# РИСУЕМ НИЖНЮЮ ПОЛОВИНУ МЕНЮ:
 canvas.create_rectangle(size_canvas_x, size_canvas_y // 2, size_canvas_x + menu_x, size_canvas_y,
-                        fill='#D7ECF2')  # РИСУЕМ МЕНЮ №2:
+                        fill='#D7ECF2')
+
 # РИСУЕМ ВЕРХНЕЕ БУКВЕННОЕ ПОЛЕ
 abc_y = step_y * 0.66  # высота буквенной зоны
-abc = Canvas(tk, width=size_canvas_x * 2 + menu_x, height=abc_y, bd=0, highlightthickness=0)
-abc.create_rectangle(0, 0, size_canvas_x, abc_y, fill="white", outline='white')
-abc.create_rectangle(size_canvas_x + menu_x, 0, size_canvas_x * 2 + menu_x, abc_y, fill="white", outline='white')
+abc = Canvas(tk, width=size_canvas_x * 2 + menu_x + (abc_y * 2), height=abc_y, bd=0, highlightthickness=0)
+abc.create_rectangle(0, 0, size_canvas_x * 2 + menu_x + (abc_y * 2), abc_y, fill="white", outline='white')
+
+# РИСУЕМ БОКОВЫЕ ЦИФРОВЫЕ ПОЛЯ
+abc_left = Canvas(tk, width=abc_y, height=size_canvas_y + menu_y, bd=0, highlightthickness=0)
+abc_left.create_rectangle(0, 0, abc_y, size_canvas_x, fill="white", outline='white')
+abc_right = Canvas(tk, width=abc_y, height=size_canvas_y + menu_y, bd=0, highlightthickness=0)
+abc_right.create_rectangle(0, 0, abc_y, size_canvas_x, fill="white", outline='white')
 
 abc.pack()
+abc_left.pack(side="left")
+abc_right.pack(side="right")
 canvas.pack()
 tk.update()
 
@@ -81,9 +105,9 @@ draw_table()  # рисуем клетки на 1-м поле
 draw_table(size_canvas_x + menu_x)  # рисуем клетки на 2-м поле
 
 t0 = Label(tk, text='Игрок №1', font=('Helvetica', 16))
-t0.place(x=size_canvas_x // 2 - t0.winfo_reqwidth() // 2, y=size_canvas_y + abc_y + 3)
+t0.place(x=size_canvas_x // 2 - t0.winfo_reqwidth() // 2 + abc_y, y=size_canvas_y + abc_y + 3)
 t1 = Label(tk, text='Игрок №2' + add_label, font=('Helvetica', 16))
-t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2, y=size_canvas_y + abc_y + 3)
+t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2 + abc_y, y=size_canvas_y + abc_y + 3)
 t0.configure(background='red')
 t0.configure(background='white')
 
@@ -197,7 +221,8 @@ def button_begin_again():
     text.delete("1.0", END)
     if vs_computer: show_my_ships()
     # ЦЕНТРУЕМ РАСПОЛОЖЕНИЕ НАДПИСИ "ИГРОК №2"
-    t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2, y=size_canvas_y + 3)
+    t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2 + abc_y,
+             y=size_canvas_y + 3 + abc_y)
 
 
 def change_rb():
@@ -220,14 +245,14 @@ def change_rb():
 rb_var = BooleanVar()
 rb1 = Radiobutton(tk, text='Player vs. Computer', variable=rb_var, value=1, command=change_rb)
 rb2 = Radiobutton(tk, text='Player vs. Player', variable=rb_var, value=0, command=change_rb)
-rb1.place(x=size_canvas_x + menu_x / 8, y=40 + abc_y)  # отступ кнопки 1/8 от меню, ширина = 3/4 от меню
-rb2.place(x=size_canvas_x + menu_x / 8, y=60 + abc_y)
+rb1.place(x=size_canvas_x + menu_x / 8 + abc_y, y=40 + abc_y)  # отступ кнопки 1/8 от меню, ширина = 3/4 от меню
+rb2.place(x=size_canvas_x + menu_x / 8 + abc_y, y=60 + abc_y)
 if vs_computer:
     rb1.select()
 else: rb2.select()
 
 text = Text(width=23, height=5,bg="#323dbc", fg='#d2eaf4', wrap=WORD)
-text.place(x=size_canvas_x + 7, y=size_canvas_y / 2 + 7 + abc_y)
+text.place(x=size_canvas_x + 7 + abc_y, y=size_canvas_y / 2 + 7 + abc_y)
 # text.insert(1.0,'FIGHT!!!' + '\n')
 
 def button_show_enemy():
@@ -369,7 +394,7 @@ def dead_or_alive(x, y, linee, ships, points):  # ПРОВЕРЯЕМ РАНЕН 
 # b1.place(x=size_canvas_x + menu_x / 8, y=150, width=menu_x / 4 * 3)
 
 b2 = Button(tk, text='Начать заново!', command=button_begin_again)
-b2.place(x=size_canvas_x + menu_x / 8, y=10 + abc_y, width=menu_x / 4 * 3)
+b2.place(x=size_canvas_x + menu_x / 8 + abc_y, y=10 + abc_y, width=menu_x / 4 * 3)
 
 
 def draw_point(x, y, point, ship):  # координаты удара x, y; point - клик мыши 0 или 1....
@@ -433,7 +458,6 @@ def auto_killer(x, y):
     # ДЕЛАЕМ ВЫСТРЕЛ ПО ДАННЫМ КООРДИНАТАМ
     points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
 
-
     # ЕСЛИ КОРАБЛЬ ОДНОПАЛУБНЫЙ
     if my_ships[y][x] == 1:
         text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' УБИТ!!!' + '\n')
@@ -453,6 +477,7 @@ def auto_killer(x, y):
 
     linee = direction(x, y, my_ships)
     status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
+    text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
 
     # ЕСЛИ КОРАБЛЬ РАНЕЕ НЕДОБИТ.========================================================================
     if len(dead_x) > len(dead_y):  # Или 'if linee == 'horizontal'
@@ -476,9 +501,12 @@ def auto_killer(x, y):
                 time.sleep(0.6)
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
                 # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
-                status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
-                text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
+                if color == 'red':
+                    status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
+                    text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
+                print('проверяем статус- ', status)
                 if status == 'УБИТ!':
+                    print('УБИТ!')
                     for i in dead_x:
                         for j in dead_y:
                             id1 = canvas.create_oval((i + draw_x) * step_x, j * step_y,
@@ -492,6 +520,7 @@ def auto_killer(x, y):
                     return
                 # Если промазали, то обозначаем клетку первого попадания как 'r' и выходим из auto_killer
                 if color != 'red':
+                    text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + '\n')
                     points2[previous_y][previous_x] = 'r'
                     return
             x, y = previous_x, previous_y  # Если достигли крайнего правого поля,
@@ -508,8 +537,9 @@ def auto_killer(x, y):
                 time.sleep(0.6)
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
                 # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
-                status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
-                text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
+                if color == 'red':
+                    status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
+                    text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
                 if status == 'УБИТ!':
                     for i in dead_x:
                         for j in dead_y:
@@ -523,6 +553,7 @@ def auto_killer(x, y):
                     check_win()
                     return
             points2[previous_y][previous_x] = 'r' # Обозначаем клетку первого попадания как 'r'
+            text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + '\n')
             # и выходим из auto_killer
             return
 
@@ -537,8 +568,9 @@ def auto_killer(x, y):
                 time.sleep(0.6)
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
                 # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
-                status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
-                text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
+                if color == 'red':
+                    status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
+                    text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
                 if status == 'УБИТ!':
                     for i in dead_x:
                         for j in dead_y:
@@ -553,6 +585,7 @@ def auto_killer(x, y):
                     return
                 if color != 'red':
                     points2[previous_y][previous_x] = 'r'
+                    text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + '\n')
                     return
             x, y = previous_x, previous_y  # Если достигли крайнего правого поля,
             #                              то меняем координаты на точку первого попадания.
@@ -569,8 +602,9 @@ def auto_killer(x, y):
                 time.sleep(0.6)
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
                 # УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
-                status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
-                text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
+                if color == 'red':
+                    status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
+                    text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
                 if status == 'УБИТ!':
                     for i in dead_x:
                         for j in dead_y:
@@ -584,6 +618,7 @@ def auto_killer(x, y):
                     check_win()
                     return
             points2[previous_y][previous_x] = 'r'  # Обозначаем клетку первого попадания как 'r'
+            text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + '\n')
             # и выходим из auto_killer
             return
 
