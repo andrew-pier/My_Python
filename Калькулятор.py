@@ -26,11 +26,11 @@ def press_screen_key(event):
     if digit in '789+': row_but = 3
     if digit in '456-': row_but = 4
     if digit in '123': row_but = 5
-    if digit in '0.': row_but = 6
+    if digit in '0.,': row_but = 6
 
     if digit in '741': col_but = 0
     if digit in '8520': col_but = 1
-    if digit in '963./': col_but = 2
+    if digit in '963.,/': col_but = 2
     if digit in '*+-': col_but = 3
 
     if event.keycode == 13: row_but, col_but, digit  = 6, 3, '='
@@ -55,7 +55,7 @@ def press_key(event):
     print('event.char', repr(event.char))
     print('event.keycode', event.keycode)
     if event.char.isdigit(): number(event.char)
-    if event.char == '.': separator(event.char)
+    if event.char == '.' or event.char == ',': separator(event.char)
     if event.char in '/*-+': oper(event.char)
     if event.keycode == 13: summa()
     if event.keycode == 8: delete()
@@ -118,6 +118,7 @@ def oper(num):
 
 
 def separator(num):
+    if num == ',': num = '.'  # Если нажат разделитель в русской раскладке, меняем на точку
     value = calc.get()
     for i in range(len(value) - 1, -1, -1):
         print(value[i])
@@ -126,6 +127,8 @@ def separator(num):
     if value[-1] in '/*-+': num = '0' + num
     calc.delete(0, END)
     calc.insert(0, value + str(num))
+    calc1.delete(0, END)
+    calc1.insert(0, value + str(num))
 
 
 def summa():
@@ -166,12 +169,10 @@ def change_znak():
     calc.insert(0, str(value))
 
 
-Button(text='C', background="#754", activebackground="#FF8C00", font=("Arial", 16), command=com_clear).grid(row=2, column=0,
-                                                                                                   stick='wesn', padx=1,
-                                                                                                   pady=1)
-Button(text='←', background="#765", activebackground="#FF8C00", font=("Arial", 16), command=delete).grid(row=2, column=1,
-                                                                                                stick='wesn', padx=1,
-                                                                                                pady=1)
+b = Button(text='C', background="#754", activebackground="#FF8C00", font=("Arial", 16), command=com_clear)
+b.grid(row=2, column=0,stick='wesn', padx=1,pady=1)
+b = Button(text='←', background="#765", activebackground="#FF8C00", font=("Arial", 16), command=delete)
+b.grid(row=2, column=1,stick='wesn', padx=1,pady=1)
 make_operation_button('/').grid(row=2, column=2, stick='wesn', padx=1, pady=1)
 make_operation_button('*').grid(row=2, column=3, stick='wesn', padx=1, pady=1)
 
@@ -189,18 +190,13 @@ make_digit_button(1).grid(row=5, column=0, stick='wesn', padx=1, pady=1)
 make_digit_button(2).grid(row=5, column=1, stick='wesn', padx=1, pady=1)
 make_digit_button(3).grid(row=5, column=2, stick='wesn', padx=1, pady=1)
 
-Button(text='=', background="#557", activebackground="#FF8C00", font="16", command=summa).grid(row=5, column=3,
-                                                                                               rowspan=2, stick='wesn',
-                                                                                               padx=1, pady=1)
-Button(text='+/-', background="#555", activebackground="#FF8C00", font="16", command=change_znak).grid(row=6, column=0,
-                                                                                                       stick='wesn',
-                                                                                                       padx=1, pady=1)
+b = Button(text='=', background="#557", activebackground="#FF8C00", font="16", command=summa)
+b.grid(row=5, column=3, rowspan=2, stick='wesn', padx=1, pady=1)
+b = Button(text='+/-', background="#555", activebackground="#FF8C00", font="16", command=change_znak)
+b.grid(row=6, column=0, stick='wesn',padx=1, pady=1)
 make_digit_button(0).grid(row=6, column=1, stick='wesn', padx=1, pady=1)
-Button(text=',', background="#555", activebackground="#FF8C00", font="16", command=lambda: separator('.')).grid(row=6,
-                                                                                                                column=2,
-                                                                                                                stick='wesn',
-                                                                                                                padx=1,
-                                                                                                                pady=1)
+b = Button(text=',', background="#555", activebackground="#FF8C00", font="16", command=lambda: separator('.'))
+b.grid(row=6,column=2,stick='wesn',padx=1, pady=1)
 
 win.grid_columnconfigure(0, minsize=65)
 win.grid_columnconfigure(1, minsize=65)
