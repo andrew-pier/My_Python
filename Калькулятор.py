@@ -13,7 +13,7 @@ next_step_clear = False
 
 calc1 = Entry(win, justify=tkinter.RIGHT, background="#575", font=('Garamond', 12), width=32)
 calc1.grid(row=0, column=0, columnspan=4, padx=1)  #columnspan -объединение нескольких колонок
-calc1.insert(0, '')
+calc1.insert(0, '0')
 calc = Entry(win, justify=tkinter.RIGHT, background="#575", font=('Arial', 38), width=9)
 calc.grid(row=1, column=0, columnspan=4, padx=1)  #columnspan -объединение нескольких колонок
 calc.insert(0, '0')
@@ -91,6 +91,7 @@ def number(num):
     calc.insert(0, value + str(num))
     #
     value = calc1.get()
+    if value == '0': value = ''
     calc1.delete(0, END)
     calc1.insert(0, value + str(num))
     next_step_clear = False
