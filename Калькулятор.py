@@ -99,16 +99,20 @@ def number(num):
 def oper(num):
     global next_step_clear
     value = calc.get()
-    if value == '0': return
-    if value[-1] in '+-*/.': value = value[:-1]
-    if any(i in value for i in '/*-+'):
-        value = str(eval(value))
+    if value == '0': return # если цифровое поле пустое, то ничего делать не надо
+    if value[-1] in '+-*/.': value = value[:-1] # исключаем из конца поля знак операции
+    if any(i in value for i in '/*-+'): # и если есть другие знаки математических операций, производим вычисление
+        value = eval(value)
+        if value % 1 == 0: # т.к. при делении EVAL() возвращает дробь (float), то если дробная часть равна 0,
+            value = round(value)  # округляем до целого
+        else:
+            value = round(value, 2)  # иначе округляем до сотых
     calc.delete(0, END)
-    calc.insert(0, value + str(num))
+    calc.insert(0, str(value) + num)
     #
     value = calc1.get()
     calc1.delete(0, END)
-    calc1.insert(0, value + str(num))
+    calc1.insert(0, value + num)
     next_step_clear = False
 
 
