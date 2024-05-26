@@ -21,17 +21,17 @@ ships_list = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]  # Список все корабл�
 enemy_ships = [[0 for i in range(s_x)] for i in range(s_y)]  # Пустая матрица игнового поля. Заполняем нолями
 # print('МАТРИЦА ПОЛЯ:\n', *enemy_ships, sep='\n')
 list_ids = []  # список объектов canvas
-ids_menu_ships = []
+ids_menu_ships = []  # id список кораблей, нарисованных в меню
+boom_list = {}  # Список изображений взрыва
 points = [[-1 for i in range(s_x)] for i in range(s_y)]  # Список координит, куда уже кликали мышкой
 points2 = [[-1 for i in range(s_x)] for i in range(s_y)]  # Список координит, куда противник кликал мышкой
-killed_ships1 = []  # Список подбитых еораблей
-killed_ships2 = []  # Список подбитых еораблей
+killed_ships1 = []  # Список подбитых кораблей
+killed_ships2 = []  # Список подбитых кораблей
 your_move = True  # Ход 1-го игрока
 vs_computer = True  # Игра против компьютера
 win = False
 around = True
 add_label = ' (Computer)' if vs_computer else ''
-boom_list = {}
 
 
 def draw_table(offset_x=0):
@@ -55,7 +55,6 @@ def draw_table(offset_x=0):
     for n in range(2):
         for i in range(1, 11, 1):
             label = Label(tk, text=i, font=('Helvetica', 11))
-            # label.place(x=6 + second_pole, y=i * step_y)
             label.place(x=16 + second_pole, y=i * step_y + 8, anchor='center')
         second_pole = (size_canvas_x * 2) + menu_x + abc_y
 
@@ -74,6 +73,8 @@ tk.wm_attributes("-topmost", 1)  # поверх других окон
 # ОБОЗНАЧИМ ОБЛАСТЬ ДЛЯ ИГРОВЫХ ПОЛЕЙ
 canvas = Canvas(tk, width=size_canvas_x * 2 + menu_x + 1, height=size_canvas_y + menu_y, bd=0, highlightthickness=0)
 boom = PhotoImage(file="boom.png")
+fire = PhotoImage(file="fire.png")
+
 # РИСУЕМ ПОЛЕ №1:
 # canvas.create_rectangle(0, 0, size_canvas_x, size_canvas_y, fill="white")
 py_image1 = PhotoImage(file="SeaBFon.png")
@@ -101,6 +102,7 @@ abc_left = Canvas(tk, width=abc_y, height=size_canvas_y + menu_y, bd=0, highligh
 abc_right = Canvas(tk, width=abc_y, height=size_canvas_y + menu_y, bd=0, highlightthickness=0)
 # abc_right.create_rectangle(0, 0, abc_y, size_canvas_x, fill="white", outline='white')
 
+
 abc.pack()
 abc_left.pack(side="left")
 abc_right.pack(side="right")
@@ -116,6 +118,9 @@ t1 = Label(tk, text='Игрок №2' + add_label, font=('Helvetica', 16))
 t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2 + abc_y, y=size_canvas_y + abc_y + 3)
 t0.configure(background='red')
 t0.configure(background='white')
+# canvas.create_image(275, 275, image=fire)
+# canvas.create_image(275, 225, image=fire)
+# canvas.create_image(275, 175, image=fire)
 
 
 def menu_ships():
@@ -130,13 +135,14 @@ def menu_ships():
     for n in range(2):
 
         # 4 ТРУБНИК
-        color4 = 'lightgrey' if 4 in list else 'red'
+        color4 = 'lightgrey' if 4 in list else 'red' # Если 4-х палубник есть в списке подбитых кораблей killed_ships2,
+        # то цвет серый, иначе красный
 
         for i in range(1, 5, 1):
             id = canvas.create_rectangle(i * step_menu + size_canvas_x, step_menu * 0.5 + delta_y,
                                          i * step_menu + step_menu + size_canvas_x, step_menu * 1.5 + delta_y,
                                          fill=color4, outline="black")
-            ids_menu_ships.append(id)
+            ids_menu_ships.append(id)  # Записываем id клеток нарисованного корабля в список ids_menu_ships
 
         # 3 ТРУБНИК
         color31 = 'lightgrey' if list.count(3) > 0 else 'red'
@@ -404,8 +410,8 @@ def dead_or_alive(x, y, linee, ships, points):  # ПРОВЕРЯЕМ РАНЕН 
     return status, dead_x, dead_y
 
 
-# b0 = Button(tk, text='Показать корабли противника', command=button_show_enemy)
-# b0.place(x=size_canvas_x + menu_x / 19 + abc_y, y=115, width=menu_x * 0.9)  # отступ кнопки 1/15 от меню, ширина = 3/4 от меню
+b0 = Button(tk, text='Показать корабли противника', command=button_show_enemy)
+b0.place(x=size_canvas_x + menu_x / 19 + abc_y, y=115, width=menu_x * 0.9)  # отступ кнопки 1/15 от меню, ширина = 3/4 от меню
 # #
 # b1 = Button(tk, text='Показать мои корабли', command=show_my_ships)
 # b1.place(x=size_canvas_x + menu_x / 8, y=150, width=menu_x / 4 * 3)
@@ -490,13 +496,16 @@ def auto_killer(x, y):
     # ЕСЛИ КОРАБЛЬ ОДНОПАЛУБНЫЙ
     if my_ships[y][x] == 1:
         around_destroyed_ship(x, y)
+        tk.update()
+        time.sleep(0.5)
         text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' УБИТ!!!' + '\n')
         id1 = canvas.create_oval((x + draw_x) * step_x, y * step_y, (x + draw_x) * step_x + step_x,
                                  y * step_y + step_y, fill='darkred')
+        id2 = canvas.create_image((x + draw_x) * step_x + 25, y * step_y + 20, image=fire)
         canvas.delete(boom_list[str(x + draw_x) + str(y)])
         del boom_list[str(x + draw_x) + str(y)]
         list_ids.append(id1)
-        list_ids.append(id1)
+        list_ids.append(id2)
         # around_destroyed_ship(x, y)
         killed_ships2.append(my_ships[y][x])
         menu_ships()
@@ -531,7 +540,7 @@ def auto_killer(x, y):
                 if x == s_x: break
                 # ДЕЛАЕМ ВЫСТРЕЛ ПО НОВЫМ КООРДИНАТАМ
                 tk.update()
-                time.sleep(0.6)
+                time.sleep(0.5)
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
                 # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 if color == 'red':
@@ -540,12 +549,16 @@ def auto_killer(x, y):
                 print('проверяем статус- ', status)
                 if status == 'УБИТ!':
                     around_destroyed_ship(dead_x[:], dead_y[:])
+                    tk.update()
+                    time.sleep(0.5)
                     for i in dead_x:
                         for j in dead_y:
                             id1 = canvas.create_oval((i + draw_x) * step_x, j * step_y,
                                                      (i + draw_x) * step_x + step_x,
                                                      j * step_y + step_y, fill='darkred')
+                            id2 = canvas.create_image((i + draw_x) * step_x + 25, j * step_y + 20, image=fire)
                             list_ids.append(id1)
+                            list_ids.append(id2)
                             print(str(i + draw_x) + str(j))
                             canvas.delete(boom_list[str(i + draw_x) + str(j)])
                             del boom_list[str(i + draw_x) + str(j)]
@@ -571,7 +584,7 @@ def auto_killer(x, y):
                 if x < 0: break
                 # ДЕЛАЕМ ВЫСТРЕЛ ПО НОВЫМ КООРДИНАТАМ
                 tk.update()
-                time.sleep(0.6)
+                time.sleep(0.5)
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
                 # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 if color == 'red':
@@ -579,12 +592,16 @@ def auto_killer(x, y):
                     text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
                 if status == 'УБИТ!':
                     around_destroyed_ship(dead_x[:], dead_y[:])
+                    tk.update()
+                    time.sleep(0.5)
                     for i in dead_x:
                         for j in dead_y:
                             id1 = canvas.create_oval((i + draw_x) * step_x, j * step_y,
                                                      (i + draw_x) * step_x + step_x,
                                                      j * step_y + step_y, fill='darkred')
+                            id2 = canvas.create_image((i + draw_x) * step_x + 25, j * step_y + 20, image=fire)
                             list_ids.append(id1)
+                            list_ids.append(id2)
                             print(str(i + draw_x) + str(j))
                             canvas.delete(boom_list[str(i + draw_x) + str(j)])
                             del boom_list[str(i + draw_x) + str(j)]
@@ -607,7 +624,7 @@ def auto_killer(x, y):
                 if y < 0: break
                 # ДЕЛАЕМ ВЫСТРЕЛ ПО НОВЫМ КООРДИНАТАМ
                 tk.update()
-                time.sleep(0.6)
+                time.sleep(0.5)
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
                 # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 if color == 'red':
@@ -615,12 +632,16 @@ def auto_killer(x, y):
                     text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
                 if status == 'УБИТ!':
                     around_destroyed_ship(dead_x[:], dead_y[:])
+                    tk.update()
+                    time.sleep(0.5)
                     for i in dead_x:
                         for j in dead_y:
                             id1 = canvas.create_oval((i + draw_x) * step_x, j * step_y,
                                                      (i + draw_x) * step_x + step_x,
                                                      j * step_y + step_y, fill='darkred')
+                            id2 = canvas.create_image((i + draw_x) * step_x + 25, j * step_y + 20, image=fire)
                             list_ids.append(id1)
+                            list_ids.append(id2)
                             print(str(i + draw_x) + str(j))
                             canvas.delete(boom_list[str(i + draw_x) + str(j)])
                             del boom_list[str(i + draw_x) + str(j)]
@@ -646,7 +667,7 @@ def auto_killer(x, y):
                 if y == s_y: break
                 # ДЕЛАЕМ ВЫСТРЕЛ ПО НОВЫМ КООРДИНАТАМ
                 tk.update()
-                time.sleep(0.6)
+                time.sleep(0.5)
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
                 # УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 if color == 'red':
@@ -654,16 +675,20 @@ def auto_killer(x, y):
                     text.insert(1.0, 'ИГРОК 2 - ' + letters[x] + str(y + 1) + ' ' + status + '\n')
                 if status == 'УБИТ!':
                     around_destroyed_ship(dead_x[:], dead_y[:])
+                    tk.update()
+                    time.sleep(0.5)
                     for i in dead_x:
                         for j in dead_y:
                             id1 = canvas.create_oval((i + draw_x) * step_x, j * step_y,
                                                      (i + draw_x) * step_x + step_x,
                                                      j * step_y + step_y, fill='darkred')
+                            id2 = canvas.create_image((i + draw_x) * step_x + 25, j * step_y + 20, image=fire)
                             list_ids.append(id1)
                             print(str(i + draw_x) + str(j))
                             canvas.delete(boom_list[str(i + draw_x) + str(j)])
                             del boom_list[str(i + draw_x) + str(j)]
                             list_ids.append(id1)
+                            list_ids.append(id2)
                     # around_destroyed_ship(dead_x, dead_y)
                     killed_ships2.append(my_ships[y][x])
                     menu_ships()
@@ -740,9 +765,17 @@ def add_to_all(event):
             points[ip_y][ip_x], color = draw_point(ip_x, ip_y, point, ship)
         if color == 'red':
             if enemy_ships[ip_y][ip_x] == 1:  # Если корабль однопалубный
-                if around: around_destroyed_ship(ip_x, ip_y)
+                if around: around_destroyed_ship(ip_x, ip_y)  # Если включена обводка, обводим
+                tk.update()
+                time.sleep(0.5)
+                print('координаты', ip_x, ip_y)
+                print('boom_list', boom_list)
+                canvas.delete(boom_list[str(ip_x) + str(ip_y)])
+                # del boom_list[ip_x + ip_y] - Здесь удаление из списка не делаем,
+                # т.к. удаление будет ниже "if status == 'УБИТ!':"
                 id1 = canvas.create_oval(ip_x * step_x, ip_y * step_y, ip_x * step_x + step_x, ip_y * step_y + step_y,
                                          fill='darkred')
+                #canvas.create_image(ip_x * step_x + 25, ip_y * step_y + 25, image=fire)
 
                 list_ids.append(id1)
             linee = direction(ip_x, ip_y, enemy_ships)
@@ -753,14 +786,18 @@ def add_to_all(event):
                 if around: around_destroyed_ship(x[:], y[:])
                 killed_ships1.append(ship)
                 biggest_ship(killed_ships1)
+                tk.update()
+                if enemy_ships[ip_y][ip_x] != 1: time.sleep(0.5) # Если корабль однопалубный, задержку не делаем
                 for i in x:
                     for j in y:
                         id1 = canvas.create_oval(i * step_x, j * step_y, i * step_x + step_x,
                                                  j * step_y + step_y, fill='darkred')
-                        canvas.delete(boom_list[str(i) + str(j)])
-                        del boom_list[str(i) + str(j)]
+                        id2 = canvas.create_image(i * step_x + 25, j * step_y + 20, image=fire)
+                        canvas.delete(boom_list[str(i) + str(j)])  # Удаляем картинку BOOM c координатами xy
+                        del boom_list[str(i) + str(j)]  # Удаляем из словаря запись с ключом xy
                         print(boom_list)
                         list_ids.append(id1)
+                        list_ids.append(id2)
                 menu_ships()
                 check_win()
     if vs_computer and not your_move:
@@ -787,15 +824,18 @@ def add_to_all(event):
                 if around: around_destroyed_ship(x[:], y[:])
                 killed_ships2.append(ship)
                 biggest_ship(killed_ships2)
+                tk.update()
+                time.sleep(0.5)
                 for i in x:
                     for j in y:
                         id1 = canvas.create_oval((i + s_x + delta_x) * step_x, j * step_y, (i + s_x + delta_x) * step_x
                                                  + step_x, j * step_y + step_y, fill='darkred')
                         canvas.delete(boom_list[str(i + s_x + delta_x) + str(j)])
                         del boom_list[str(i + s_x + delta_x) + str(j)]
+                        id2 = canvas.create_image((i + s_x + delta_x) * step_x + 25, j * step_y + 20, image=fire)
                         print(boom_list)
                         list_ids.append(id1)
-                        list_ids.append(id1)
+                        list_ids.append(id2)
                 menu_ships()
                 check_win()
 
