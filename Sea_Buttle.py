@@ -506,7 +506,6 @@ def auto_killer(x, y):
         del boom_list[str(x + draw_x) + str(y)]
         list_ids.append(id1)
         list_ids.append(id2)
-        # around_destroyed_ship(x, y)
         killed_ships2.append(my_ships[y][x])
         menu_ships()
         check_win()
