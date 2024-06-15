@@ -1,7 +1,12 @@
 from tkinter import *
 from tkinter import messagebox
+from pygame import mixer
 import time
 import random
+
+# initialize the pygame mixer
+mixer.init(44100)
+
 
 tk = Tk()
 app_running = True
@@ -31,7 +36,14 @@ your_move = True  # Ход 1-го игрока
 vs_computer = True  # Игра против компьютера
 win = False
 around = True
+show_percent = True
+sound = True
 add_label = ' (Computer)' if vs_computer else ''
+
+d1_miss = mixer.Sound("бульк.mp3")
+d2_shot = mixer.Sound("shot.mp3")
+d3_boom = mixer.Sound("boom.mp3")
+d4_dead = mixer.Sound("dead.mp3")
 
 
 def draw_table(offset_x=0):
@@ -116,18 +128,45 @@ t0 = Label(tk, text='Игрок №1', font=('Helvetica', 16))
 t0.place(x=size_canvas_x // 2 - t0.winfo_reqwidth() // 2 + abc_y, y=size_canvas_y + abc_y + 3)
 t1 = Label(tk, text='Игрок №2' + add_label, font=('Helvetica', 16))
 t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2 + abc_y, y=size_canvas_y + abc_y + 3)
-t0.configure(background='red')
-t0.configure(background='white')
-# canvas.create_image(275, 275, image=fire)
-# canvas.create_image(275, 225, image=fire)
-# canvas.create_image(275, 175, image=fire)
+# t0.configure(background='red')
+print('t1= ', t1)
+# t0.configure(background='#f0f0f0')
+# РИСУЕМ КРАСНЫЕ РАМКИ ВОКРУГ ПОЛЕЙ ОБОИХ ИГРОКОВ
+rectangle_player1 = canvas.create_rectangle(4, 4, size_canvas_x - 4, size_canvas_y - 4, outline="red", width=8)
+rectangle_player2 = canvas.create_rectangle(4 + size_canvas_x + menu_x, 4,
+                                            size_canvas_x * 2 + menu_x - 4, size_canvas_y - 4,
+                                            outline="red", width=8)
+canvas.itemconfig(rectangle_player1, width=0)  # скрываем рамку игрока 1
+canvas.itemconfig(rectangle_player2, width=0)  # скрываем рамку игрока 2
+if show_percent:
+    t2 = Label(tk, text='0' + '%', bg='#D7ECF2', font=('Helvetica', 12))
+    t3 = Label(tk, text='0' + '%', bg='white', font=('Helvetica', 12))
 
+
+def mark_next_step():
+    if not win:
+        if your_move:
+            canvas.itemconfig(rectangle_player1, width=8)  # скрываем рамку игрока 1
+            canvas.itemconfig(rectangle_player2, width=0)  # скрываем рамку игрока 2
+            t0.configure(background='red')
+            t1.configure(background='#f0f0f0')
+        else:
+            canvas.itemconfig(rectangle_player1, width=0)  # скрываем рамку игрока 1
+            canvas.itemconfig(rectangle_player2, width=8)  # скрываем рамку игрока 2
+            t1.configure(background='red')
+            t0.configure(background='#f0f0f0')
+
+mark_next_step()
 
 def menu_ships():
     global ids_menu_ships
     step_menu = size_canvas_y // 22
     delta_y = 100
     list = killed_ships2
+    print('delta_x * step_x', delta_x * step_x)
+    if show_percent:
+        t3.place(x=delta_x * step_x + size_canvas_x - 10 - t2.winfo_reqwidth() // 2, y=step_menu * 2 + 100)
+        t2.place(x=delta_x * step_x + size_canvas_x - 10 - t2.winfo_reqwidth() // 2, y=step_menu * 2 + 100 + size_canvas_y // 2)
     for elemnt in ids_menu_ships:
         canvas.delete(elemnt)
     ids_menu_ships = []
@@ -213,10 +252,13 @@ def button_begin_again():
     global your_move, win
     global killed_ships1, killed_ships2
     global vs_computer, ids_menu_ships
-    for elemnt in list_ids:
-        canvas.delete(elemnt)
-    for elemnt in ids_menu_ships:
-        canvas.delete(elemnt)
+    for element in list_ids:
+        canvas.delete(element)
+    for element in ids_menu_ships:
+        canvas.delete(element)
+    ids_boom = boom_list.keys()
+    for element in ids_boom:
+        canvas.delete(boom_list[element])
     ids_menu_ships = []
     list_ids = []
     killed_ships1 = []
@@ -231,6 +273,8 @@ def button_begin_again():
     win = False
     text.delete("1.0", END)
     if vs_computer: show_my_ships()
+    percent()
+    mark_next_step()
     # ЦЕНТРУЕМ РАСПОЛОЖЕНИЕ НАДПИСИ "ИГРОК №2"
     t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2 + abc_y,
              y=size_canvas_y + 3 + abc_y)
@@ -322,6 +366,10 @@ def check_win():
         return
     button_show_enemy()
     show_my_ships()
+    canvas.itemconfig(rectangle_player1, width=0)  # скрываем рамку игрока 1
+    canvas.itemconfig(rectangle_player2, width=0)  # скрываем рамку игрока 2
+    t0.configure(background='#f0f0f0')
+    t1.configure(background='#f0f0f0')
     points = points2 = [[10 for i in range(s_x)] for i in range(s_y)]  # Заполняем весь список координат
     win = True
     your_move = True
@@ -329,6 +377,7 @@ def check_win():
     text.insert(1.0, ' \n')
     text.insert(1.0, winner + '\n')
     text.insert(1.0, 'УРАААА!!! \n')
+
 
 
 def biggest_ship(killed_ships):
@@ -410,14 +459,22 @@ def dead_or_alive(x, y, linee, ships, points):  # ПРОВЕРЯЕМ РАНЕН 
     return status, dead_x, dead_y
 
 
-b0 = Button(tk, text='Показать корабли противника', command=button_show_enemy)
-b0.place(x=size_canvas_x + menu_x / 19 + abc_y, y=115, width=menu_x * 0.9)  # отступ кнопки 1/15 от меню, ширина = 3/4 от меню
-# #
+# b0 = Button(tk, text='Показать корабли противника', command=button_show_enemy)
+# b0.place(x=size_canvas_x + menu_x / 19 + abc_y, y=115, width=menu_x * 0.9)  # отступ кнопки 1/15 от меню, ширина = 3/4 от меню
+#
 # b1 = Button(tk, text='Показать мои корабли', command=show_my_ships)
 # b1.place(x=size_canvas_x + menu_x / 8, y=150, width=menu_x / 4 * 3)
 
 b2 = Button(tk, text='Начать заново!', command=button_begin_again)
 b2.place(x=size_canvas_x + menu_x / 8 + abc_y, y=10 + abc_y, width=menu_x / 4 * 3)
+
+
+def percent():  # Считаем, какой процент поля уже проверен
+    global points, points2
+    if not show_percent: return
+    t2['text'] = str(100 - sum(x.count(-1) for x in points)) + '%'
+    t3['text'] = str(100 - sum(x.count(-1) for x in points2)) + '%'
+
 
 
 def draw_point(x, y, point, ship):  # координаты удара x, y; point - клик мыши 0 или 1....
@@ -426,22 +483,33 @@ def draw_point(x, y, point, ship):  # координаты удара x, y; poin
         canvas.delete(point)
         list_ids.remove(point)
         point = -1
+        percent()
         return point, 0
     elif point == 1:  # Если кликнули ПКМ, рисуем голубой кружок и пишем его id в матрицу POINTS
         color = 'lightblue'
     elif ship != 0:
+        if sound: d2_shot.play()
         color = 'red'
         boom_l = canvas.create_image(x * step_x + 25, y * step_y + 25, image=boom)
         boom_list[str(x) + str(y)] = boom_l
         print('boom', boom_list, str(x) + str(y))
+        percent()
+        tk.update()
+        time.sleep(0.15)
+        if sound: d3_boom.play()
         return point, color
     else:
+        if sound: d2_shot.play()
         color = 'blue'
         your_move = not your_move
     id1 = canvas.create_oval(x * step_x, y * step_y, x * step_x + step_x, y * step_y + step_y, fill=color)
     list_ids.append(id1)
+    tk.update()
+    time.sleep(0.15)
+    if sound: d1_miss.play()
     if color == 'lightblue':
         point = id1
+    percent()
     return point, color
 
 
@@ -479,6 +547,10 @@ def around_destroyed_ship(x, y):  # ОБРИСОВЫВАЕМ ПОДБИТЫЙ К
     # print('x, y', x, y)
     # print('МАТРИЦА ПОЛЯ:\n', *points2, sep='\n')
     # print()
+    percent()
+    tk.update()
+    time.sleep(0.15)
+    if sound: d4_dead.play()
 
 
 def auto_killer(x, y):
@@ -492,6 +564,7 @@ def auto_killer(x, y):
         points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
     else:
         color = 'red'
+    percent()
 
     # ЕСЛИ КОРАБЛЬ ОДНОПАЛУБНЫЙ
     if my_ships[y][x] == 1:
@@ -541,6 +614,7 @@ def auto_killer(x, y):
                 tk.update()
                 time.sleep(0.5)
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
+                percent()
                 # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 if color == 'red':
                     status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
@@ -585,6 +659,7 @@ def auto_killer(x, y):
                 tk.update()
                 time.sleep(0.5)
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
+                percent()
                 # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 if color == 'red':
                     status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
@@ -625,6 +700,7 @@ def auto_killer(x, y):
                 tk.update()
                 time.sleep(0.5)
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
+                percent()
                 # ПРОВЕРКА УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 if color == 'red':
                     status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
@@ -668,6 +744,7 @@ def auto_killer(x, y):
                 tk.update()
                 time.sleep(0.5)
                 points2[y][x], color = draw_point(x + draw_x, y, 0, my_ships[y][x])
+                percent()
                 # УБИТ ИЛИ РАНЕН + ПОБЕДИЛ ИЛИ НЕТ
                 if color == 'red':
                     status, dead_x, dead_y = dead_or_alive(x, y, linee, my_ships, points2)
@@ -758,13 +835,17 @@ def add_to_all(event):
         if points[ip_y][ip_x] == -1:  # Если в списке POINTS по данным  координатам -1, т.е. пустое поле
             point = _type  # то пишем туда клик мыши
             points[ip_y][ip_x], color = draw_point(ip_x, ip_y, point, ship)  # и рисуем ПРОИАХ или ПОПАДАНИЕ
-            if color == 'blue': text.insert(1.0, 'ИГРОК 1 - ' + letters[ip_x] + str(ip_y + 1) + '\n')
+            percent()
+            if color == 'blue':
+                text.insert(1.0, 'ИГРОК 1 - ' + letters[ip_x] + str(ip_y + 1) + '\n')
         elif points[ip_y][ip_x] > 0:  # Если в списке POINTS по данным  координатам есть id
             point = points[ip_y][ip_x]
             points[ip_y][ip_x], color = draw_point(ip_x, ip_y, point, ship)
+            percent()
         if color == 'red':
             if enemy_ships[ip_y][ip_x] == 1:  # Если корабль однопалубный
                 if around: around_destroyed_ship(ip_x, ip_y)  # Если включена обводка, обводим
+                percent()
                 tk.update()
                 time.sleep(0.5)
                 print('координаты', ip_x, ip_y)
@@ -800,6 +881,7 @@ def add_to_all(event):
                 menu_ships()
                 check_win()
     if vs_computer and not your_move:
+        mark_next_step()
         step_computer()
 
     # ПРОВЕРЯЕМ КООРДИНАТЫ КЛИКА В ПРЕДЕЛАХ ПОЛЯ № 2
@@ -837,6 +919,8 @@ def add_to_all(event):
                         list_ids.append(id2)
                 menu_ships()
                 check_win()
+
+    mark_next_step()
 
 
 canvas.bind_all("<Button-1>", add_to_all)  # Левая кнопка мыши
