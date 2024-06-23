@@ -301,14 +301,17 @@ def change_rb():
         if not messagebox.askokcancel("Перезапуск игры", "Хотите начать заново?"):
             rb2.select() if rb_var.get() else rb1.select()
             return
-    # print(rb_var.get())
 
     if rb_var.get():
         vs_computer = True
-        t1['text'] = gamer_2 + add_label
+        add_label = ' (Компьютер)'
     else:
         vs_computer = False
-        t1['text'] = gamer_2
+        add_label = ''
+
+    t1['text'] = gamer_2 + add_label
+    t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2 + abc_y,
+             y=size_canvas_y + abc_y + 3)
     button_begin_again()
 
 
@@ -564,7 +567,7 @@ def set_percent(che_p):
     percent()
 
 def close_set(window, name1, name2, horizont_Scale):
-    global settings_on, gamer_1, gamer_2, set_volume
+    global settings_on, gamer_1, gamer_2, set_volume, add_label
     settings_on = False
     gamer_1 = name1.get()
     gamer_2 = name2.get()
@@ -572,6 +575,8 @@ def close_set(window, name1, name2, horizont_Scale):
     if gamer_2 == '' or gamer_2.isspace(): gamer_2 = 'Игрок №2'
     t0['text'] = gamer_1
     t1['text'] = gamer_2 + add_label
+    t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2 + abc_y,
+             y=size_canvas_y + abc_y + 3)
     if gamer_1.lower() == 'andrewpier' or gamer_1.lower() == 'дашкидзе':
         b0.place(x=size_canvas_x + menu_x / 19 + abc_y, y=115, width=menu_x * 0.9)
     else:
@@ -995,6 +1000,8 @@ def add_to_all(event):
         if color == 'red':
             if enemy_ships[ip_y][ip_x] == 1:  # Если корабль однопалубный
                 if around: around_destroyed_ship(ip_x, ip_y)  # Если включена обводка, обводим
+                else:
+                    if sound: d4_dead.play()
                 percent()
                 tk.update()
                 time.sleep(0.5)
@@ -1014,6 +1021,8 @@ def add_to_all(event):
             text.insert(1.0, 'ИГРОК 1 - ' + letters[ip_x] + str(ip_y + 1) + ' ' + status + '\n')
             if status == 'УБИТ!':
                 if around: around_destroyed_ship(x[:], y[:])
+                else:
+                    if sound: d4_dead.play()
                 killed_ships1.append(ship)
                 biggest_ship(killed_ships1)
                 tk.update()
@@ -1053,6 +1062,8 @@ def add_to_all(event):
             text.insert(1.0, 'ИГРОК 2 - ' + letters[ip_x - s_x - delta_x] + str(ip_y + 1) + ' ' + status + '\n')
             if status == 'УБИТ!':
                 if around: around_destroyed_ship(x[:], y[:])
+                else:
+                    if sound: d4_dead.play()
                 killed_ships2.append(ship)
                 biggest_ship(killed_ships2)
                 tk.update()
