@@ -54,6 +54,9 @@ def volume(set_volume):
     d2_shot.set_volume(set_volume)
     d3_boom.set_volume(set_volume)
     d4_dead.set_volume(set_volume)
+    if set_volume == 0 and sound: mute_sound()
+    if set_volume > 0 and not sound: mute_sound()
+
 
 volume(set_volume)
 
@@ -545,7 +548,7 @@ def settings():
     label_name2 = Label(window, text='имя второго игрока').place(x=155, y=163)
 
     val = IntVar()
-    horizont_Scale = Scale(window, orient=HORIZONTAL, length=190, from_=0.0, to=100.0, variable=val)
+    horizont_Scale = Scale(window, orient=HORIZONTAL, length=190, from_=0.0, to=100.0, variable=val)#, tickinterval=20 )
     horizont_Scale.set(set_volume * 100)
     horizont_Scale.place(x=10, y=210)
     label_scale = Label(window, text='громкость').place(x=210, y=230)
@@ -573,9 +576,6 @@ def close_set(window, name1, name2, horizont_Scale):
         b0.place(x=size_canvas_x + menu_x / 19 + abc_y, y=115, width=menu_x * 0.9)
     set_volume = horizont_Scale.get() / 100
     volume(set_volume)
-    x = window.winfo_rootx()
-    y = window.winfo_rooty()
-    print('x,y =', x,y)
     window.destroy()
 
 def close_rules(window):
@@ -584,10 +584,13 @@ def close_rules(window):
     window.destroy()
 
 def mute_sound():
-    global sound
+    global sound, set_volume
     sound = not sound
     if sound:
         b5.config(image=sound_on)
+        if set_volume == 0:
+            set_volume = 0.2
+            volume(set_volume)
     else:
         b5.config(image=sound_off)
 
