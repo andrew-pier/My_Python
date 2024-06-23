@@ -569,11 +569,13 @@ def close_set(window, name1, name2, horizont_Scale):
     gamer_1 = name1.get()
     gamer_2 = name2.get()
     if gamer_1 == '' or gamer_1.isspace(): gamer_1 = 'Игрок №1'
-    if gamer_2 == '' or gamer_2.isspace(): gamer_2 = 'Игрок №1'
+    if gamer_2 == '' or gamer_2.isspace(): gamer_2 = 'Игрок №2'
     t0['text'] = gamer_1
     t1['text'] = gamer_2 + add_label
     if gamer_1.lower() == 'andrewpier' or gamer_1.lower() == 'дашкидзе':
         b0.place(x=size_canvas_x + menu_x / 19 + abc_y, y=115, width=menu_x * 0.9)
+    else:
+        b0.place_forget()
     set_volume = horizont_Scale.get() / 100
     volume(set_volume)
     window.destroy()
