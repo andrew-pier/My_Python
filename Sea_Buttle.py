@@ -38,13 +38,24 @@ win = False
 around = True
 show_percent = True
 sound = True
-add_label = ' (Computer)' if vs_computer else ''
+settings_on = False
+gamer_1 = 'Игрок №1'
+gamer_2 = 'Игрок №2'
+add_label = ' (Компьютер)' if vs_computer else ''
 
 d1_miss = mixer.Sound("бульк.mp3")
 d2_shot = mixer.Sound("shot.mp3")
 d3_boom = mixer.Sound("boom.mp3")
 d4_dead = mixer.Sound("dead.mp3")
+set_volume = 0.5
 
+def volume(set_volume):
+    d1_miss.set_volume(set_volume)
+    d2_shot.set_volume(set_volume)
+    d3_boom.set_volume(set_volume)
+    d4_dead.set_volume(set_volume)
+
+volume(set_volume)
 
 def draw_table(offset_x=0):
     # РИСУЕМ КЛЕТКИ НА ПОЛЕ
@@ -86,6 +97,10 @@ tk.wm_attributes("-topmost", 1)  # поверх других окон
 canvas = Canvas(tk, width=size_canvas_x * 2 + menu_x + 1, height=size_canvas_y + menu_y, bd=0, highlightthickness=0)
 boom = PhotoImage(file="boom.png")
 fire = PhotoImage(file="fire.png")
+sound_on = PhotoImage(file="soundON.png")
+sound_off = PhotoImage(file="soundOFF.png")
+settings_pic = PhotoImage(file="settings.png")
+faq_pic = PhotoImage(file="faq.png")
 
 # РИСУЕМ ПОЛЕ №1:
 # canvas.create_rectangle(0, 0, size_canvas_x, size_canvas_y, fill="white")
@@ -124,13 +139,10 @@ tk.update()
 draw_table()  # рисуем клетки на 1-м поле
 draw_table(size_canvas_x + menu_x)  # рисуем клетки на 2-м поле
 
-t0 = Label(tk, text='Игрок №1', font=('Helvetica', 16))
+t0 = Label(tk, text=gamer_1, font=('Helvetica', 16))
 t0.place(x=size_canvas_x // 2 - t0.winfo_reqwidth() // 2 + abc_y, y=size_canvas_y + abc_y + 3)
-t1 = Label(tk, text='Игрок №2' + add_label, font=('Helvetica', 16))
+t1 = Label(tk, text=gamer_2 + add_label, font=('Helvetica', 16))
 t1.place(x=size_canvas_x // 2 + size_canvas_x + menu_x - t1.winfo_reqwidth() // 2 + abc_y, y=size_canvas_y + abc_y + 3)
-# t0.configure(background='red')
-print('t1= ', t1)
-# t0.configure(background='#f0f0f0')
 # РИСУЕМ КРАСНЫЕ РАМКИ ВОКРУГ ПОЛЕЙ ОБОИХ ИГРОКОВ
 rectangle_player1 = canvas.create_rectangle(4, 4, size_canvas_x - 4, size_canvas_y - 4, outline="red", width=8)
 rectangle_player2 = canvas.create_rectangle(4 + size_canvas_x + menu_x, 4,
@@ -287,34 +299,36 @@ def change_rb():
             rb2.select() if rb_var.get() else rb1.select()
             return
     # print(rb_var.get())
+
     if rb_var.get():
         vs_computer = True
-        t1['text'] = 'Игрок №2 (Computer)'
+        t1['text'] = gamer_2 + add_label
     else:
         vs_computer = False
-        t1['text'] = 'Игрок №2'
+        t1['text'] = gamer_2
     button_begin_again()
 
 
-def aroundtrue():
+def aroundtrue(che):
     global around
     around = che.get()
+    print(around)
 
 
 rb_var = BooleanVar()
-rb1 = Radiobutton(tk, text='Player vs. Computer', variable=rb_var, value=1, command=change_rb)
-rb2 = Radiobutton(tk, text='Player vs. Player', variable=rb_var, value=0, command=change_rb)
+rb1 = Radiobutton(tk, text='Player vs. Computer', bg='white', variable=rb_var, value=1, command=change_rb)
+rb2 = Radiobutton(tk, text='Player vs. Player', bg='white', variable=rb_var, value=0, command=change_rb)
 rb1.place(x=size_canvas_x + menu_x / 8 + abc_y, y=40 + abc_y)  # отступ кнопки 1/8 от меню, ширина = 3/4 от меню
 rb2.place(x=size_canvas_x + menu_x / 8 + abc_y, y=60 + abc_y)
 if vs_computer:
     rb1.select()
 else:
     rb2.select()
-che = BooleanVar()
-che.set(True)
-check = Checkbutton(tk, text="Обводить корабли", variable=che, onvalue=True, offvalue=False, command=aroundtrue)
-check.place(x=size_canvas_x + menu_x / 8 + abc_y, y=80 + abc_y)
-print('che= ', che.get())
+# che = BooleanVar()
+# che.set(True)
+# check = Checkbutton(tk, text="Обводить корабли", bg='white', variable=che, onvalue=True, offvalue=False, command=lambda: aroundtrue(che))
+# check.place(x=size_canvas_x + menu_x / 8 + abc_y, y=80 + abc_y)
+# print('che= ', che.get())
 
 # ДИСПЛЕЙ ОТОБРАЖЕНИЯ ХОДОВ
 text = Text(width=23, height=5, bg="#323dbc", fg='#d2eaf4', wrap=WORD)
@@ -331,6 +345,17 @@ def button_show_enemy():
                 _id = canvas.create_rectangle(i * step_x, j * step_y, i * step_x + step_x, j * step_y + step_y,
                                               fill=color)
                 list_ids.append(_id)
+
+def cheater():
+    global list_ids
+    temp_list = list_ids[:]
+    button_show_enemy()
+    tk.update()
+    time.sleep(0.8)
+    list = [a for a in list_ids if a not in temp_list]
+    for element in list:
+        list_ids.remove(element)
+        canvas.delete(element)
 
 
 def show_my_ships():
@@ -459,19 +484,138 @@ def dead_or_alive(x, y, linee, ships, points):  # ПРОВЕРЯЕМ РАНЕН 
     return status, dead_x, dead_y
 
 
-# b0 = Button(tk, text='Показать корабли противника', command=button_show_enemy)
-# b0.place(x=size_canvas_x + menu_x / 19 + abc_y, y=115, width=menu_x * 0.9)  # отступ кнопки 1/15 от меню, ширина = 3/4 от меню
-#
+def faq():
+    global settings_on
+    if settings_on: return
+    settings_on = True
+
+    x = tk.winfo_rootx()
+    y = tk.winfo_rooty()
+    height = tk.winfo_height() // 2
+    geom = f'500x500+{x + height + 55}+{y + 45}'
+
+    window = Tk()
+    window.title("Правила игры")
+    window.geometry(geom)
+    window.wm_attributes("-topmost", 1)  # поверх других окон
+    window.protocol("WM_DELETE_WINDOW", lambda: close_rules(window))
+
+    label_faq = Label(window, text=' Лень писать... Все и так знают...', font=('Helvetica', 12))
+    label_faq.place(x=30, y=25)
+
+
+def settings():
+    global settings_on
+    if settings_on: return
+    settings_on = True
+
+    x = tk.winfo_rootx()
+    y = tk.winfo_rooty()
+    height = tk.winfo_height() // 2
+    geom = f'294x390+{x+height+55}+{y+45}'
+
+    window = Tk()
+    window.title("Настройки")
+    window.geometry(geom)
+    window.wm_attributes("-topmost", 1)  # поверх других окон
+    window.protocol("WM_DELETE_WINDOW", lambda: close_set(window, name1, name2, horizont_Scale))
+    label_sett = Label(window, text=' Настройки игры ', font=('Helvetica', 16), width=15, borderwidth=1, bg='lightgrey')
+    label_sett.place(x=147 - label_sett.winfo_reqwidth() // 2, y=5)
+
+    che = BooleanVar(window)
+    che.set(around)
+    check2 = Checkbutton(window, text="Обводить подбитые корабли автоматически", variable=che, onvalue=True,
+                         offvalue=False, command=lambda: aroundtrue(che))
+    check2.place(x=5, y=50)
+    che_p = BooleanVar(window)
+    che_p.set(show_percent)
+
+    check3 = Checkbutton(window, text="Отображать процент проверенного поля", variable=che_p, onvalue=True,
+                         offvalue=False, command=lambda: set_percent(che_p))
+    check3.place(x=5, y=75)
+
+    name1 = Entry(window, background="lightgrey", font=('Garamond', 12), width=15)
+    name1.place(x=25, y=125)
+    name1.insert(0, gamer_1)
+    label_name1 = Label(window, text='имя первого игрока').place(x=155, y=128)
+
+    name2 = Entry(window, background="lightgrey", font=('Garamond', 12), width=15)
+    name2.place(x=25, y=160)
+    name2.insert(0, gamer_2)
+    label_name2 = Label(window, text='имя второго игрока').place(x=155, y=163)
+
+    val = IntVar()
+    horizont_Scale = Scale(window, orient=HORIZONTAL, length=190, from_=0.0, to=100.0, variable=val)
+    horizont_Scale.set(set_volume * 100)
+    horizont_Scale.place(x=10, y=210)
+    label_scale = Label(window, text='громкость').place(x=210, y=230)
+
+    b_apply = Button(window, text='  Применить  ',font=('Helvetica', 12), width=20, bg='lightgrey',
+                     command=lambda: close_set(window, name1, name2, horizont_Scale))
+    b_apply.place(x=147 - b_apply.winfo_reqwidth() // 2, y=310)
+
+
+def set_percent(che_p):
+    global show_percent
+    show_percent = che_p.get()
+    percent()
+
+def close_set(window, name1, name2, horizont_Scale):
+    global settings_on, gamer_1, gamer_2, set_volume
+    settings_on = False
+    gamer_1 = name1.get()
+    gamer_2 = name2.get()
+    if gamer_1 == '' or gamer_1.isspace(): gamer_1 = 'Игрок №1'
+    if gamer_2 == '' or gamer_2.isspace(): gamer_2 = 'Игрок №1'
+    t0['text'] = gamer_1
+    t1['text'] = gamer_2 + add_label
+    if gamer_1.lower() == 'andrewpier' or gamer_1.lower() == 'дашкидзе':
+        b0.place(x=size_canvas_x + menu_x / 19 + abc_y, y=115, width=menu_x * 0.9)
+    set_volume = horizont_Scale.get() / 100
+    volume(set_volume)
+    x = window.winfo_rootx()
+    y = window.winfo_rooty()
+    print('x,y =', x,y)
+    window.destroy()
+
+def close_rules(window):
+    global settings_on
+    settings_on = False
+    window.destroy()
+
+def mute_sound():
+    global sound
+    sound = not sound
+    if sound:
+        b5.config(image=sound_on)
+    else:
+        b5.config(image=sound_off)
+
+
+
+b0 = Button(tk, text='Cheater !!!', bg='#d7a9a4', command=cheater)
+
 # b1 = Button(tk, text='Показать мои корабли', command=show_my_ships)
 # b1.place(x=size_canvas_x + menu_x / 8, y=150, width=menu_x / 4 * 3)
 
 b2 = Button(tk, text='Начать заново!', command=button_begin_again)
 b2.place(x=size_canvas_x + menu_x / 8 + abc_y, y=10 + abc_y, width=menu_x / 4 * 3)
 
+b3 = Button(tk, image=settings_pic, command=settings)
+b3.place(x=size_canvas_x + abc_y + (menu_x / 2) - 14, y=5, height =24, width=28)
+
+b4 = Button(tk, image=faq_pic, command=faq)
+b4.place(x=size_canvas_x + abc_y + (menu_x / 2) - 46, y=5, height =24, width=28)
+
+b5 = Button(tk, image=sound_on, command=mute_sound)
+b5.place(x=size_canvas_x + abc_y + (menu_x / 2) + 18, y=5, height =24, width=28)
 
 def percent():  # Считаем, какой процент поля уже проверен
     global points, points2
-    if not show_percent: return
+    if not show_percent:
+        t2['text'] = ''
+        t3['text'] = ''
+        return
     t2['text'] = str(100 - sum(x.count(-1) for x in points)) + '%'
     t3['text'] = str(100 - sum(x.count(-1) for x in points2)) + '%'
 
@@ -493,6 +637,7 @@ def draw_point(x, y, point, ship):  # координаты удара x, y; poin
         boom_l = canvas.create_image(x * step_x + 25, y * step_y + 25, image=boom)
         boom_list[str(x) + str(y)] = boom_l
         print('boom', boom_list, str(x) + str(y))
+        print('boomlist', len(boom_list))
         percent()
         tk.update()
         time.sleep(0.15)
