@@ -661,7 +661,7 @@ def draw_point(x, y, point, ship):  # координаты удара x, y; poin
     list_ids.append(id1)
     tk.update()
     time.sleep(0.15)
-    if sound: d1_miss.play()
+    if sound and color != 'lightblue': d1_miss.play()
     if color == 'lightblue':
         point = id1
     percent()
@@ -700,7 +700,7 @@ def around_destroyed_ship(x, y):  # ОБРИСОВЫВАЕМ ПОДБИТЫЙ К
                     list_ids.append(id1)
             point[j][i] = 0
     # print('x, y', x, y)
-    # print('МАТРИЦА ПОЛЯ:\n', *points2, sep='\n')
+    # print('МАТРИЦА ПОЛЯ:\n', *point, sep='\n')
     # print()
     percent()
     tk.update()
