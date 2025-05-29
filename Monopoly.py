@@ -17,9 +17,9 @@ side_x = side_y = '804' # УСТАНАВЛИВАЕМ РАМЕР ОКНА 90% О�
 win_resolution = str(side_x + 'x' + side_y)
 print(win_resolution)
 
-cell_width = int(side_x) // 12 # НАХОДИМ ЩИРИНУ КЛЕТКИ
-cell_height = int(cell_width * 1.5) # НАХОДИМ ДЛИНУ КЛЕТКИ
-print(cell_width, cell_height)
+# cell_width = int(side_x) // 12 # НАХОДИМ ЩИРИНУ КЛЕТКИ
+# cell_height = int(cell_width * 1.5) # НАХОДИМ ДЛИНУ КЛЕТКИ
+# print(cell_width, cell_height)
 
 #win.geometry(win_resolution)
 win.title('MONOPOLY')
@@ -31,11 +31,12 @@ canvas.create_image(402, 402, image=py_image1)
 # canvas.create_line(110, 0, 110, 804, fill='red')
 # canvas.create_line(175, 0, 175, 804, fill='red')
 # canvas.create_line(0, 110, 804, 110, fill='red')
-print(cell_height)
+# print('cell_height', cell_height)
 # canvas.create_line(int(side_y) - cell_height, 0, int(side_y) - cell_height, int(side_y))
 # canvas.create_line(0, cell_height, int(side_y), cell_height)
 # canvas.create_line(0, int(side_y) - cell_height, int(side_y), int(side_y) - cell_height)
-fish_player1 = canvas.create_oval( 120, 50, 164, 95, fill='red')
+chips_player2 = canvas.create_oval( 120, 10, 164, 55, fill='blue')
+chips_player1 = canvas.create_oval( 120, 60, 164, 105, fill='red')
 canvas.pack()
 win.update()
 time.sleep(2)
@@ -43,18 +44,25 @@ def moveew(n): # ПЕРЕЛВИЖЕНИЕ ФИШКИ
     for n in range(1, n):
         for i in range(1, 66):
             time.sleep(0.0005) # СКОРОСТЬ ПЕРЕМЕЩЕНИЯ ФИШКИ
-            canvas.move(fish_player1, 1, 0)
+            canvas.move(chips_player1, 1, 0)
             win.update()
-    #     print('step-', n, '  x,y = ', canvas.coords(fish_player1)) # показать координаты фишки после каждой клетки
-    # print('x,y = ', canvas.coords(fish_player1)) # показать координаты фишки в конце хода
+        print('step-', n, '  x,y = ', canvas.coords(chips_player1)) # показать координаты фишки после каждой клетки
+    # print('x,y = ', canvas.coords(chips_player1)) # показать координаты фишки в конце хода
 
-moveew(4)
+moveew(5)
 
 
 for i in range(694, 110, -65): # отрисовка границ и центра ячеек
     canvas.create_line(i, 0, i, 804, fill='red')
     canvas.create_line(i - 32, 0, i - 32, 804, fill='green')
     print('green=', i - 32)
+
+for i in range(694, 77, -65): # отрисовка границ и центра ячеек
+    canvas.create_line(0, i, 804, i, fill='red')
+    canvas.create_line(0, 54, 804, 54, fill='orange')
+    canvas.create_rectangle(0, 0, 109, 109, fill='orange')
+    canvas.create_line(0, i - 32, 804, i - 32, fill='blue')
+    print('blue=', i - 32)
 
 
 canvas.pack()
