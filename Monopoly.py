@@ -11,13 +11,13 @@ mixer.init(44100)
 
 win = Tk()
 app_running = True
-# screen_width = win.winfo_screenwidth()  #    ОПРЕДЕЛЕНИЕ РАЗМЕРОВ ЭКРАНА ШИРИНА (ОСЬ Х)
+screen_width = win.winfo_screenwidth() #    ОПРЕДЕЛЕНИЕ РАЗМЕРОВ ЭКРАНА ШИРИНА (ОСЬ Х)
 # screen_height = win.winfo_screenheight()  #    ОПРЕДЕЛЕНИЕ РАЗМЕРОВ ЭКРАНА ВЫСОТА (ОСЬ Y)
-# print(screen_width, screen_height)
+print(screen_width, 'screen_height')
 # side_x = side_y = '800'
 
 #side_x = side_y = str(screen_height // 10 * 9) # УСТАНАВЛИВАЕМ РАМЕР ОКНА 90% ОТ РАЗМЕРА ЭКРАНА ПО ОСИ y
-side_x = side_y = '804'  # УСТАНАВЛИВАЕМ РАМЕР ОКНА 90% ОТ РАЗМЕРА ЭКРАНА ПО ОСИ y
+side_x = side_y = '804'  # УСТАНАВЛИВАЕМ РАМЕР ОКНА 804
 win_resolution = str(side_x + 'x' + side_y)
 # print(win_resolution)
 
@@ -26,7 +26,7 @@ win_resolution = str(side_x + 'x' + side_y)
 # print(cell_width, cell_height)
 
 
-#win.geometry(win_resolution)
+win.geometry('804x804+364+10')
 win.title('MONOPOLY')
 win.wm_attributes("-topmost", 1)  # поверх других окон
 win.resizable(False, False)  # запрещаем изменение размера окна
@@ -36,10 +36,11 @@ canvas.create_image(402, 402, image=py_image1)
 
 chips_player1 = canvas.create_oval(727, 700, 771, 744, fill='red')
 chips_player2 = canvas.create_oval(727, 750, 771, 794, fill='blue')
-player1 = 0
-player2 = 0
-cash_player1 = 200
-cash_player2 = 200
+player1 = 0 # местоположение фишки игрока 1 на игровом поле (номер клетки)
+player2 = 0 # местоположение фишки игрока 2 на игровом поле (номер клетки)
+cash_player1 = 1500 # начальная сумма игрока 1
+cash_player2 = 1500 # начальная сумма игрока 2
+in_jail = ['player 1', 'player 2']
 money = mixer.Sound("money.mp3")
 sound_dice1 = mixer.Sound("roll dice1.mp3")
 sound_dice2 = mixer.Sound("roll dice2.mp3")
@@ -48,8 +49,109 @@ sound_dice4 = mixer.Sound("roll dice4.mp3")
 sound_jail = mixer.Sound("jail.mp3")
 dice = PhotoImage(file="dice.png")
 double = 0 # подсчёт выпавших дублей
-player = chips_player1 # какой игрок начинает ход
-post_dice = 0
+player = chips_player1 # АКТИВНЫЙ ИГРОК (какой игрок начинает ход)
+next_step = True # РАЗРЕШЕНИЕ ДЕЛАТЬ СЛЕДУЮЩИЙ ХОД
+
+cash1 = Label(win, text='PLAYER 1 = ' + str(cash_player1) + '$', font=('Helvetica', 16), bg='#ddf2df', relief="solid" ,borderwidth=1)
+cash1.place(x=120, y=120)
+cash2 = Label(win, text='PLAYER 2 = ' + str(cash_player2) + '$', font=('Helvetica', 16), bg='#ddf2df', relief="solid" ,borderwidth=1)
+cash2.place(x=120, y=155)
+
+cells = {}
+cells[1]=[0,60,2,'Brown']
+cells[3]=[0,60,4,'Brown']
+cells[6]=[0,100,6,'Grey']
+cells[8]=[0,100,6,'Grey']
+cells[9]= [0,120,8,'Grey']
+cells[11]=[0,140,10,'Pink']
+cells[13]=[0,140,10,'Pink']
+cells[14]=[0,160,12,'Pink']
+cells[16]=[0,180,14,'Orange']
+cells[18]=[0,180,14,'Orange']
+cells[19]=[0,200,16,'Orange']
+cells[21]=[0,220,18,'Red']
+cells[23]=[0,220,18,'Red']
+cells[24]=[0,240,20,'Red']
+cells[26]=[0,260,22,'Yellow']
+cells[27]=[0,260,22,'Yellow']
+cells[29]=[0,280,24,'Yellow']
+cells[31]=[0,300,26,'Green']
+cells[32]=[0,300,26,'Green']
+cells[34]=[0,320,28,'Green']
+cells[37]=[0,350,35,'Blue']
+cells[39]=[0,400,50,'Blue']
+cells[5]=[0,200,25,'Railway']
+cells[15]=[0,200,25,'Railway']
+cells[25]=[0,200,25,'Railway']
+cells[35]=[0,200,25,'Railway']
+cells[12]=[0,150,0,'Electro']
+cells[28]=[0,150,0,'Water']
+
+
+# ДИСПЛЕЙ ОТОБРАЖЕНИЯ ХОДОВ
+# text = Text(width=34, height=17, bg="lightgreen", fg='darkgreen', font=("TkDefaultFont", 11), wrap=WORD)
+text = Text(width=34, height=17, bg="lightgreen", fg='darkgreen', wrap=WORD)
+text.insert(1.0, ' ХОД 1-го ИГРОКА \n')
+text.place(x=407, y=121)
+
+
+# СОЗДАЁМ МЕТКИ СОБСТВЕННОСТИ ВОЗЛЕ ЯЧЕЕК ИГРОВОГО ПОЛЯ
+x = 757 #692 + 65
+y = 695
+marker = [0] # СПИСОК id МЕТОК ПРИНАДЛЕЖНОСТИ КЛЕТОК
+for i in range(1, 41):
+    # print(i)
+    # if i in [0, 2, 4, 7, 10, 17, 20, 22, 30, 33, 36, 38]: continue
+    # else: a = cells[i][0]
+    # if a == chips_player1: color = 'red'
+    # elif a == chips_player2: color' = 'blue'
+    # else: color = ''
+
+    if i in (10, 20, 30, 40): marker.append('no-' + str(i)) # continue
+
+    if i < 10:  #
+        x -= 65
+        marker.append(canvas.create_rectangle(x, y, x - 65, y - 7, fill='', width=0))
+    elif i > 10 and i < 20:  #
+        y -= 65
+        x = 107
+        marker.append(canvas.create_rectangle(x, y, x + 7, y + 65, fill='', width=0))
+    elif i >20 and i < 30:  #
+        x += 65
+        y = 107
+        marker.append(canvas.create_rectangle(x, y, x - 65, y + 7, fill='', width=0))
+    elif i > 30 :
+        x = 693#
+        y += 65
+        marker.append(canvas.create_rectangle(x, y, x - 7, y - 65, fill='', width=0))
+# print(marker)
+# canvas.itemconfig(marker[11], fill='red')
+
+def sob (): # ПРОВЕРКА СОБСТВЕННОСТИ
+    p1 = []
+    p2 = []
+    for i in range(1, 40):
+        #print(i)
+        if i in [0, 2, 4, 7, 10, 17, 20, 22, 30, 33, 36, 38]: continue
+        else: a = cells[i][0]
+        if a == chips_player1:
+            p1.append(str(a) + cells[i][3])
+        elif a == chips_player2:
+            p2.append(str(a) + cells[i][3])
+    print('PLAYER 1a ', p1)
+    print('PLAYER 2a ', p2)
+
+
+
+# win_r = Canvas(win, width=300, height=800, border=5, highlightthickness=0)
+# win_r.pack(side="right")
+# #win_r.create_rectangle(0, 0, 300, 804, fill="lightblue", outline='red')
+# # ДИСПЛЕЙ ОТОБРАЖЕНИЯ ХОДОВ
+# text = Text(width=38, height=50, bg="lightblue", fg='#323dbc', wrap=WORD)
+# text.place(x=1115, y=0)
+
+# win_l = Canvas(win, width=350, bd=5, highlightthickness=0)
+# win_l.pack(side="left")
 
 # picture = canvas.create_image(400, 400, image=dice)
 # button_dice = Button(win, image=dice, highlightthickness=0 ,bd=0, height=105, bg='#ddf2df', activebackground='#ddf2df', command=roll_dice)
@@ -63,8 +165,19 @@ post_dice = 0
 # win.update()
 # time.sleep(1)
 
+def display_cash():
+    # cash1 = Label(win, text='PLAYER 1 = ' + str(cash_player1) + '$', font=('Helvetica', 16), bg='#ddf2df',
+    #               relief="solid", borderwidth=1)
+    # cash1.place(x=120, y=120)
+    # cash1 = Label(win, text='PLAYER 2 = ' + str(cash_player2) + '$', font=('Helvetica', 16), bg='#ddf2df',
+    #               relief="solid", borderwidth=1)
+    # cash1.place(x=120, y=155)
+    cash1.config(text='PLAYER 1 = ' + str(cash_player1) + '$')
+    cash2.config(text='PLAYER 2 = ' + str(cash_player2) + '$')
 
-def moveew(n, player):  # ПЕРЕЛВИЖЕНИЕ ФИШКИ
+
+
+def moveew(n, player):
 
     for n in range(1, n):  # делаем n- ходов фишкой
         chips_coords = canvas.coords(player)
@@ -117,61 +230,180 @@ def moveew(n, player):  # ПЕРЕЛВИЖЕНИЕ ФИШКИ
 
 
 def jail(player):
+    global player1, player2
     time.sleep(0.3)
     sound_jail.set_volume(0.6)
     sound_jail.play()
-    if player == chips_player1: canvas.coords(player, 61, 704, 105, 748)
-    if player == chips_player2: canvas.coords(player, 11, 704, 55, 748)
+    text.insert(1.0, ' ВЫ ОТПРАВЛЯЕТЕСЬ В ТЮРЬМУ! \n')
+    if player == chips_player1:
+        canvas.coords(player, 61, 704, 105, 748)
+        player1 = 10
+    if player == chips_player2:
+        canvas.coords(player, 11, 704, 55, 748)
+        player2 = 10
+    print(in_jail[player - 2])
+
+
+
+def buy(player, active):
+    global cash_player1, cash_player2
+    price = cells[int(active)][1]
+    # if player == chips_player1: money = cash_player1
+    # else: money = cash_player2
+    if player == chips_player1:
+        if cash_player1 - price < 0 :
+            text.insert(1.0, ' НЕДОСТАТОЧНО СРЕДСТВ! \n')
+            return
+        cash_player1 -= price
+        color = 'red'
+    else:
+        if cash_player2 - price < 0 :
+            text.insert(1.0, ' НЕДОСТАТОЧНО СРЕДСТВ! \n')
+        cash_player2 -= price
+        color = 'blue'
+    text.insert(1.0, ' ИГРОК '  + str(player - 1) + ' ПОКУПАЕТ ' + str(cells[int(active)][3]) + '\n')
+    # print('покупает игрок ', player)
+    # print('money - price = ', money - price)
+    # money -= price
+    # print('money = ', money)
+    # print('cash_player1 = ', cash_player1)
+    # print('cash_player2 = ', cash_player2)
+    cells[int(active)][0] = player
+    canvas.itemconfig(marker[active], fill=color)
+
+    # if player == chips_player1: cash_player1 = money
+    # else: cash_player2 = money
+    time.sleep(0.3)
+    return
+
 
 
 def check(player):
-    print('ДЕЛАЕМ ПРОВЕРКУ!')
-    if player == chips_player1:  active = player1
+    global  cash_player1, cash_player2, double
+    # print('ДЕЛАЕМ ПРОВЕРКУ!')
+    if player == chips_player1:  active = player1 # АКТИВНАЯ КЛЕТКА
     else: active = player2
-    print('ACTIVE PLAYER=', active)
+    # print('активный игрок', player)
+    # print('активная клетка', active)
+    # print('player1', player1)
+    # print('player2', player2)
+
+    if int(active) in [0,2,7,10,17,20,22,33,36,38]: return player, active # исключил проверку не введённых данных
 
     if active == 30: # JAIL
         jail(player)
-        if player == chips_player1: player = chips_player2
-        else:  player = chips_player1
+        double = 0
+        # if player == chips_player1: player = chips_player2
+        # else: player = chips_player1
+        # # text.insert(1.0, '\n')
+        # # text.insert(1.0, ' ИГРОК ОТПРАВЛЯЕТСЯ В ТЮРЬМУ!  \n')
+        # # text.insert(1.0, '\n ТРИ ДУБЛЯ ПОДРЯД!  \n')
+        # text.insert(1.0, ' \n')
+        # text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
+        return player, active
 
-    return (player, active)
+    #print(cells[int(active)])
+
+    if active == 4: # ПОДОХОДНЫЙ НАЛОГ
+        if player == chips_player1:
+            cash_player1 -= 200
+            money.play()
+            display_cash()
+        else:
+            cash_player2 -= 200
+            money.play()
+            display_cash()
+        text.insert(1.0, ' ЗАПЛАТИТЕ ПОДОХОДНЫЙ НАЛОГ 200$  \n')
+        return player, active
+
+
+    if cells[int(active)][0] == player:
+        print('СВОЯ КЛЕТКА!)')
+        # if player == chips_player1: player = chips_player2
+        # else:  player = chips_player1
+        # return player, active
+
+    if cells[int(active)][0] != 0 and cells[int(active)][0] != player:
+        pay = cells[int(active)][2]
+        #print('ПЛАТИМ РЕНТУ!!!' + str(pay) + '$')
+        if player == chips_player1:
+            cash_player1 -= pay
+            cash_player2 += pay
+            money.play()
+            display_cash()
+            text.insert(1.0, ' ЗАПЛПТИТЕ ИГРОКУ 2 ' + str(pay) + '$ \n')
+            # print('cash_player1 = ', cash_player1)
+            # print('cash_player2 = ', cash_player2)
+        if player == chips_player2:
+            cash_player2 -= pay
+            cash_player1 += pay
+            money.play()
+            display_cash()
+            text.insert(1.0, ' ЗАПЛПТИТЕ ИГРОКУ 1 ' + str(pay) + '$ \n')
+            # print('cash_player1 = ', cash_player1)
+            # print('cash_player2 = ', cash_player2)
+            # if player == chips_player1:
+            #     player = chips_player2
+            # else:
+            #     player = chips_player1
+
+    if cells[int(active)][0] == 0:
+        #print('ПОКУПАЕМ!')
+        money.play()
+        buy(player, active)
+        display_cash()
+        #print(cells[int(active)])
+        # if player == chips_player1: player = chips_player2
+        # else:  player = chips_player1
+        # return player, active
+
+    # if player == chips_player1: player = chips_player2
+    # else:  player = chips_player1
+    return player, active
 
 
 def roll_dice():
-    global player1, player2, cash_player1, cash_player2, player, double
-
+    global player1, player2, cash_player1, cash_player2, player, double, next_step
+    #print('ход игрока ', player)
+    if not next_step: return
     i = random.randint(1, 7) # ВЫБИРАЕМ ЗВУК КУБИКОВ
     if i == 2: sound_dice2.play()
     elif i == 3: sound_dice3.play()
     elif i == 4: sound_dice4.play()
     else: sound_dice1.play()
     time.sleep(1.2)
-#########################################################################################################
+    #####################################################################################################
     two_dice = [0, 0]
+    next_step = False  # блокируем возможность следующего хода
     for i in range(2):
         random_dice = random.randint(1, 6)
-        print('i=', i)
-        print(i + 1, '-й кубик ', random_dice)
-        #if i == 0: post_dice = 0
+        #print('i=', i)
+        #print(i + 1, '-й кубик ', random_dice)
         two_dice[i] = random_dice
-        #if post_dice == random_dice:
-        print('СРАВНИВАЕМ ',two_dice)
+        #print('СРАВНИВАЕМ ',two_dice)
+        if i == 1: # если брошен второй кубик, пишем выпавшие кубики на панели
+            text.insert(1.0, ' ВЫПАЛО ' + str(two_dice[0]) + ' и ' + str(two_dice[1]) + '\n')
         if two_dice[0] == two_dice[1] and i == 1:
             double += 1
-            print('ДУБЛЬ!!!', double)
+            text.insert(1.0, ' ДУБЛЬ!  \n')
+            # text.tag_configure("bold_tag", font=("TkDefaultFont", "bold"))
+            # # text.tag_configure("bold_tag", font=("bold"))
+            # text.tag_add("bold_tag", "1.0", "1.end")
         elif i == 1: double = 0
 
         if double == 3:
             double = 0
-            print('ТЮРЬМА!!!')
+            text.insert(1.0, ' ТРИ ДУБЛЯ ПОДРЯД!  \n')
             jail(player)
             if player == chips_player1: player = chips_player2
             else: player = chips_player1
+            #text.insert(1.0, '\n')
+            #text.insert(1.0, ' ИГРОК ОТПРАВЛЯЕТСЯ В ТЮРЬМУ!  \n')
+            # text.insert(1.0, '\n ТРИ ДУБЛЯ ПОДРЯД!  \n')
+            text.insert(1.0, ' \n')
+            text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
+            next_step = True
             return
-
-        #post_dice = random_dice
-        #print('post_dice', post_dice)
 
         if player == chips_player1:
             player1 += random_dice
@@ -179,63 +411,45 @@ def roll_dice():
                 money.play()
                 cash_player1 += 200
                 player1 -= 40
+                text.insert(1.0, ' +200$ ЗА ПОЛНЫЙ КРУГ! \n')
+                display_cash()
         if player == chips_player2:
             player2 += random_dice
             if player2 >= 40:
                 money.play()
                 cash_player2 += 200
                 player2 -= 40
+                text.insert(1.0, ' +200$ ЗА ПОЛНЫЙ КРУГ! \n')
+                display_cash()
 
         moveew(random_dice + 1, player)
         time.sleep(0.2)
         #########################################################################################################
     player, active = check(player)
-    print('after check PLAYER=', player, 'ACTIVE=', active)
+    #print('after check PLAYER=', player, 'ACTIVE=', active)
+    #text.insert(1.0, ' ВЫПАЛО ' + str(two_dice[0]) + ' и ' + str(two_dice[1]) + '\n')
     # ЕСЛИ НЕ БЫЛО ДУБЛЯ, ХОД СЛЕДУЮЩЕГО ИНРОКА
     if double == 0 and player == chips_player1:  player = chips_player2
     elif double == 0: player = chips_player1
     if active == 30: double = 0
-    print('player1= ', player1, 'CASH=', cash_player1)
-    print('player2= ', player2, 'CASH=', cash_player2)
-    print('double= ', double)
+    if double == 0: text.insert(1.0, '  \n')
+    text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
+    next_step = True
+    # print('player1= ', player1, 'CASH=', cash_player1)
+    # print('player2= ', player2, 'CASH=', cash_player2)
+    # print('double= ', double)
+    # print(chips_player1)
+    # print(chips_player2)
 
 
+display_cash()
 
 button_dice = Button(win, image=dice, highlightthickness=0 ,bd=0, height=105, bg='#ddf2df', activebackground='#ddf2df', command=roll_dice)
 button_dice.place(x=125, y=577)
+button_dice.bind("<Enter>", lambda event: button_dice.place(x=127, y=579))
+button_dice.bind("<Leave>", lambda event: button_dice.place(x=125, y=577))
 
 
-
-
-
-#################     БРОСАЕМ КОСТИ    ########################
-# while n < 15:
-#     for i in range(2):
-#         random_dice = random.randint(1, 6)
-#         print(i+1, '-й кубик ', random_dice)
-#         moveew(random_dice + 1, player)
-#         if player == chips_player1:
-#             player1 += random_dice
-#             if player1 >= 40:
-#                 money.play()
-#                 cash_player1 += 200
-#                 player1 -= 40
-#                 print("КРУГ!!!", player1)
-#                 n = 6
-#         if player == chips_player2:
-#             player2 += random_dice
-#             if player2 >= 40:
-#                 money.play()
-#                 cash_player2 += 200
-#                 player2 -= 40
-#         time.sleep(0.2)
-#     #print('chips_player', player)
-#     if player == chips_player1: player = chips_player2
-#     else: player = chips_player1
-#     print('player1= ', player1)
-#     print('player2= ', player2)
-#     time.sleep(2)
-#     n += 1
 
 
 
