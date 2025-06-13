@@ -40,7 +40,9 @@ player1 = 0 # местоположение фишки игрока 1 на игр
 player2 = 0 # местоположение фишки игрока 2 на игровом поле (номер клетки)
 cash_player1 = 1500 # начальная сумма игрока 1
 cash_player2 = 1500 # начальная сумма игрока 2
-in_jail = ['player 1', 'player 2']
+in_jail = [None, None ,0 , 0]
+print(in_jail)
+
 money = mixer.Sound("money.mp3")
 sound_dice1 = mixer.Sound("roll dice1.mp3")
 sound_dice2 = mixer.Sound("roll dice2.mp3")
@@ -238,10 +240,12 @@ def jail(player):
     if player == chips_player1:
         canvas.coords(player, 61, 704, 105, 748)
         player1 = 10
+
     if player == chips_player2:
         canvas.coords(player, 11, 704, 55, 748)
         player2 = 10
-    print(in_jail[player - 2])
+    in_jail[player] = 3
+    print(in_jail)
 
 
 
@@ -290,7 +294,7 @@ def check(player):
 
     if int(active) in [0,2,7,10,17,20,22,33,36,38]: return player, active # исключил проверку не введённых данных
 
-    if active == 30: # JAIL
+    if active == 30 or active > 30: # JAIL
         jail(player)
         double = 0
         # if player == chips_player1: player = chips_player2
@@ -364,8 +368,9 @@ def check(player):
 
 def roll_dice():
     global player1, player2, cash_player1, cash_player2, player, double, next_step
-    #print('ход игрока ', player)
+    print('ход игрока ', player)
     if not next_step: return
+
     i = random.randint(1, 7) # ВЫБИРАЕМ ЗВУК КУБИКОВ
     if i == 2: sound_dice2.play()
     elif i == 3: sound_dice3.play()
@@ -377,19 +382,35 @@ def roll_dice():
     next_step = False  # блокируем возможность следующего хода
     for i in range(2):
         random_dice = random.randint(1, 6)
-        #print('i=', i)
-        #print(i + 1, '-й кубик ', random_dice)
         two_dice[i] = random_dice
-        #print('СРАВНИВАЕМ ',two_dice)
         if i == 1: # если брошен второй кубик, пишем выпавшие кубики на панели
             text.insert(1.0, ' ВЫПАЛО ' + str(two_dice[0]) + ' и ' + str(two_dice[1]) + '\n')
         if two_dice[0] == two_dice[1] and i == 1:
             double += 1
             text.insert(1.0, ' ДУБЛЬ!  \n')
+            print(in_jail[player], 'player', player)
+            if in_jail[player] != 0: # ЕСЛИ В ТЮРЬМЕ, ВЫКИНУВ ДУБЛЬ ВЫХОДИМ ИЗ ТЮРЬМЫ
+                in_jail[player] = 0
+                double = 0
+
             # text.tag_configure("bold_tag", font=("TkDefaultFont", "bold"))
-            # # text.tag_configure("bold_tag", font=("bold"))
+            # text.tag_configure("bold_tag", font=("bold"))
             # text.tag_add("bold_tag", "1.0", "1.end")
         elif i == 1: double = 0
+            # print('НЕ ДУБЛЬ !!!')
+            # print(in_jail, in_jail[player], 'player', player)
+
+        if in_jail[player] != 0:
+            if i == 1:# ЕСЛИ В ТЮРЬМЕ, ПРОПУСКАЕМ 3 ХОДА
+                in_jail[player] -=1
+                if player == chips_player1: player = chips_player2
+                else: player = chips_player1
+                text.insert(1.0, ' ИГРОК ВСЁ ЕЩЁ В ТЮРЬМЕ!  \n')
+                text.insert(1.0, ' \n')
+                text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
+                next_step = True
+                return
+            else:  continue
 
         if double == 3:
             double = 0
@@ -397,9 +418,6 @@ def roll_dice():
             jail(player)
             if player == chips_player1: player = chips_player2
             else: player = chips_player1
-            #text.insert(1.0, '\n')
-            #text.insert(1.0, ' ИГРОК ОТПРАВЛЯЕТСЯ В ТЮРЬМУ!  \n')
-            # text.insert(1.0, '\n ТРИ ДУБЛЯ ПОДРЯД!  \n')
             text.insert(1.0, ' \n')
             text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
             next_step = True
