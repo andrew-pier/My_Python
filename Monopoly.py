@@ -92,7 +92,8 @@ cells[28]=[0,150,0,'Water']
 
 # ДИСПЛЕЙ ОТОБРАЖЕНИЯ ХОДОВ
 # text = Text(width=34, height=17, bg="lightgreen", fg='darkgreen', font=("TkDefaultFont", 11), wrap=WORD)
-text = Text(width=34, height=17, bg="lightgreen", fg='darkgreen', wrap=WORD)
+text = Text(width=39, height=17, bg="lightgreen", fg='darkgreen', font=('Arial', 10), wrap=WORD)
+text.tag_configure("bold_tag", font=('Arial', 10, "bold"))
 text.insert(1.0, ' ХОД 1-го ИГРОКА \n')
 text.place(x=407, y=121)
 
@@ -174,8 +175,8 @@ def display_cash():
     # cash1 = Label(win, text='PLAYER 2 = ' + str(cash_player2) + '$', font=('Helvetica', 16), bg='#ddf2df',
     #               relief="solid", borderwidth=1)
     # cash1.place(x=120, y=155)
-    cash1.config(text='PLAYER 1 = ' + str(cash_player1) + '$')
-    cash2.config(text='PLAYER 2 = ' + str(cash_player2) + '$')
+    cash1.config(text='PLAYER 1 = ' + str(cash_player1) + ' $')
+    cash2.config(text='PLAYER 2 = ' + str(cash_player2) + ' $')
 
 
 
@@ -237,6 +238,7 @@ def jail(player):
     sound_jail.set_volume(0.6)
     sound_jail.play()
     text.insert(1.0, ' ВЫ ОТПРАВЛЯЕТЕСЬ В ТЮРЬМУ! \n')
+    text.tag_add("bold_tag", "1.0", "1.end")
     if player == chips_player1:
         canvas.coords(player, 61, 704, 105, 748)
         player1 = 10
@@ -252,8 +254,7 @@ def jail(player):
 def buy(player, active):
     global cash_player1, cash_player2
     price = cells[int(active)][1]
-    # if player == chips_player1: money = cash_player1
-    # else: money = cash_player2
+
     if player == chips_player1:
         if cash_player1 - price < 0 :
             text.insert(1.0, ' НЕДОСТАТОЧНО СРЕДСТВ! \n')
@@ -263,20 +264,13 @@ def buy(player, active):
     else:
         if cash_player2 - price < 0 :
             text.insert(1.0, ' НЕДОСТАТОЧНО СРЕДСТВ! \n')
+            return
         cash_player2 -= price
         color = 'blue'
     text.insert(1.0, ' ИГРОК '  + str(player - 1) + ' ПОКУПАЕТ ' + str(cells[int(active)][3]) + '\n')
-    # print('покупает игрок ', player)
-    # print('money - price = ', money - price)
-    # money -= price
-    # print('money = ', money)
-    # print('cash_player1 = ', cash_player1)
-    # print('cash_player2 = ', cash_player2)
     cells[int(active)][0] = player
     canvas.itemconfig(marker[active], fill=color)
 
-    # if player == chips_player1: cash_player1 = money
-    # else: cash_player2 = money
     time.sleep(0.3)
     return
 
@@ -294,7 +288,7 @@ def check(player):
 
     if int(active) in [0,2,7,10,17,20,22,33,36,38]: return player, active # исключил проверку не введённых данных
 
-    if active == 30 or active > 30: # JAIL
+    if active == 30: # JAIL
         jail(player)
         double = 0
         # if player == chips_player1: player = chips_player2
@@ -368,10 +362,9 @@ def check(player):
 
 def roll_dice():
     global player1, player2, cash_player1, cash_player2, player, double, next_step
-    print('ход игрока ', player)
     if not next_step: return
 
-    i = random.randint(1, 7) # ВЫБИРАЕМ ЗВУК КУБИКОВ
+    i = random.randint(1, 6) # ВЫБИРАЕМ ЗВУК КУБИКОВ
     if i == 2: sound_dice2.play()
     elif i == 3: sound_dice3.play()
     elif i == 4: sound_dice4.play()
@@ -380,84 +373,70 @@ def roll_dice():
     #####################################################################################################
     two_dice = [0, 0]
     next_step = False  # блокируем возможность следующего хода
-    for i in range(2):
-        random_dice = random.randint(1, 6)
-        two_dice[i] = random_dice
-        if i == 1: # если брошен второй кубик, пишем выпавшие кубики на панели
-            text.insert(1.0, ' ВЫПАЛО ' + str(two_dice[0]) + ' и ' + str(two_dice[1]) + '\n')
-        if two_dice[0] == two_dice[1] and i == 1:
-            double += 1
-            text.insert(1.0, ' ДУБЛЬ!  \n')
-            print(in_jail[player], 'player', player)
-            if in_jail[player] != 0: # ЕСЛИ В ТЮРЬМЕ, ВЫКИНУВ ДУБЛЬ ВЫХОДИМ ИЗ ТЮРЬМЫ
-                in_jail[player] = 0
-                double = 0
 
-            # text.tag_configure("bold_tag", font=("TkDefaultFont", "bold"))
-            # text.tag_configure("bold_tag", font=("bold"))
-            # text.tag_add("bold_tag", "1.0", "1.end")
-        elif i == 1: double = 0
-            # print('НЕ ДУБЛЬ !!!')
-            # print(in_jail, in_jail[player], 'player', player)
-
-        if in_jail[player] != 0:
-            if i == 1:# ЕСЛИ В ТЮРЬМЕ, ПРОПУСКАЕМ 3 ХОДА
-                in_jail[player] -=1
-                if player == chips_player1: player = chips_player2
-                else: player = chips_player1
-                text.insert(1.0, ' ИГРОК ВСЁ ЕЩЁ В ТЮРЬМЕ!  \n')
-                text.insert(1.0, ' \n')
-                text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
-                next_step = True
-                return
-            else:  continue
-
+    two_dice[0] = random.randint(1, 6)
+    two_dice[1] = random.randint(1, 6)
+    text.insert(1.0, ' ВЫПАЛО ' + str(two_dice[0]) + ' и ' + str(two_dice[1]) + '\n')
+    if two_dice[0] == two_dice[1]: # ЕСЛИ ВЫПАЛ ДУБЛЬ
+        double += 1
+        text.insert(1.0, ' ДУБЛЬ!  \n')
+        text.tag_add("bold_tag", "1.0", "1.end")
         if double == 3:
             double = 0
             text.insert(1.0, ' ТРИ ДУБЛЯ ПОДРЯД!  \n')
+            text.tag_add("bold_tag", "1.0", "1.end")
             jail(player)
             if player == chips_player1: player = chips_player2
             else: player = chips_player1
-            text.insert(1.0, ' \n')
+            text.insert(1.0, ' --- \n')
             text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
             next_step = True
             return
+        if in_jail[player] != 0: # ЕСЛИ В ТЮРЬМЕ, ВЫКИНУВ ДУБЛЬ ВЫХОДИМ ИЗ ТЮРЬМЫ
+            in_jail[player] = 0
+            double = 0
+    else:  double = 0  # ЕСЛИ НЕ ВЫПАЛ ДУБЛЬ, СБРАСЫВАЕМ СЧЁТЧИК ДУБЛЕЙ
 
-        if player == chips_player1:
-            player1 += random_dice
-            if player1 >= 40:
-                money.play()
-                cash_player1 += 200
-                player1 -= 40
-                text.insert(1.0, ' +200$ ЗА ПОЛНЫЙ КРУГ! \n')
-                display_cash()
-        if player == chips_player2:
-            player2 += random_dice
-            if player2 >= 40:
-                money.play()
-                cash_player2 += 200
-                player2 -= 40
-                text.insert(1.0, ' +200$ ЗА ПОЛНЫЙ КРУГ! \n')
-                display_cash()
+    if in_jail[player] != 0:
+        in_jail[player] -=1 # ЕСЛИ В ТЮРЬМЕ, ПРОПУСКАЕМ 3 ХОДА
+        if player == chips_player1: player = chips_player2
+        else: player = chips_player1
+        text.insert(1.0, ' ИГРОК ВСЁ ЕЩЁ В ТЮРЬМЕ!  \n')
+        text.insert(1.0, ' \n')
+        text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
+        next_step = True
+        return
 
-        moveew(random_dice + 1, player)
-        time.sleep(0.2)
-        #########################################################################################################
+    if player == chips_player1:
+        player1 += sum(two_dice)
+        if player1 >= 40:
+            money.play()
+            cash_player1 += 200
+            player1 -= 40
+            text.insert(1.0, ' +200$ ЗА ПОЛНЫЙ КРУГ! \n')
+            display_cash()
+    if player == chips_player2:
+        player2 += sum(two_dice)
+        if player2 >= 40:
+            money.play()
+            cash_player2 += 200
+            player2 -= 40
+            text.insert(1.0, ' +200$ ЗА ПОЛНЫЙ КРУГ! \n')
+            display_cash()
+
+    moveew(two_dice[0]+ 1, player)
+    time.sleep(0.2)
+    moveew(two_dice[1] + 1, player)
+    time.sleep(0.2)
     player, active = check(player)
-    #print('after check PLAYER=', player, 'ACTIVE=', active)
-    #text.insert(1.0, ' ВЫПАЛО ' + str(two_dice[0]) + ' и ' + str(two_dice[1]) + '\n')
+
     # ЕСЛИ НЕ БЫЛО ДУБЛЯ, ХОД СЛЕДУЮЩЕГО ИНРОКА
     if double == 0 and player == chips_player1:  player = chips_player2
     elif double == 0: player = chips_player1
-    if active == 30: double = 0
-    if double == 0: text.insert(1.0, '  \n')
+    if double == 0: text.insert(1.0, ' ---  \n')
     text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
     next_step = True
-    # print('player1= ', player1, 'CASH=', cash_player1)
-    # print('player2= ', player2, 'CASH=', cash_player2)
-    # print('double= ', double)
-    # print(chips_player1)
-    # print(chips_player2)
+
 
 
 display_cash()
