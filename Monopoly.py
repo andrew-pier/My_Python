@@ -89,8 +89,8 @@ cells[5]=[0,200,25,'Railway', 'Южный Вокзал', 0, 25, 50, 100, 200]
 cells[15]=[0,200,25,'Railway']
 cells[25]=[0,200,25,'Railway']
 cells[35]=[0,200,25,'Railway']
-cells[12]=[0,150,0,'Com']
-cells[28]=[0,150,0,'Com']
+cells[12]=[0,150,4,'Com']
+cells[28]=[0,150,4,'Com']
 
 
 # ДИСПЛЕЙ ОТОБРАЖЕНИЯ ХОДОВ
@@ -146,6 +146,9 @@ def sob (): # ПРОВЕРКА СОБСТВЕННОСТИ
     for i in color_group: # ПРОВЕРЯЕМ СПИСОК ПРЕДПРИЯТИЙ ИГРОКА 1 НА КОЛ-ВО ЭЛЕМЕНТОВ ОДНОГО ЦВЕТА
         n = (list([key for key, value in p1.items() if value[1] == i]))
         if len(n) > 1:
+            if i == 'Com':
+                for a in n:
+                    p1[a][0] = 10
             if i == 'Railway':
                 rent = [0, 25, 50, 100, 200]
                 for a in n:
@@ -159,6 +162,9 @@ def sob (): # ПРОВЕРКА СОБСТВЕННОСТИ
     for i in color_group:  # ПРОВЕРЯЕМ СПИСОК ПРЕДПРИЯТИЙ ИГРОКА 2 НА КОЛ-ВО ЭЛЕМЕНТОВ ОДНОГО ЦВЕТА
         n = (list([key for key, value in p2.items() if value[1] == i]))
         if len(n) > 1:
+            if i == 'Com':
+                for a in n:
+                    p2[a][0] = 10
             if i == 'Railway':
                 rent = [0, 25, 50, 100, 200]
                 for a in n:
@@ -304,7 +310,7 @@ def buy(player, active):
 
 
 
-def check(player):
+def check(player, two_dice):
     global  cash_player1, cash_player2, double
     # print('ДЕЛАЕМ ПРОВЕРКУ!')
     if player == chips_player1:  active = player1 # АКТИВНАЯ КЛЕТКА
@@ -338,20 +344,24 @@ def check(player):
     if cells[int(active)][0] != 0 and cells[int(active)][0] != player:
         # pay = cells[int(active)][2]
         # print('ПЛАТИМ РЕНТУ!!!' + str(pay) + '₽')
+        # ЕСЛИ ВЫПАЛА ЯЧЕЙКА КОММ. УСЛУГ
+        if active == 12 or active == 28: n = sum(two_dice)  # ТО ПЛАТА УМНОЖАЕТСЯ НА ВЫПАВШИЕ КУБИКИ
+        else:n = 1  # ИНАЧЕ ПЛАТА НЕ МЕНЯЕТСЯ
+
         if player == chips_player1:
             pay = p2[int(active)][0]
-            cash_player1 -= pay
-            cash_player2 += pay
+            cash_player1 -= pay * n
+            cash_player2 += pay * n
             money.play()
             display_cash()
-            text.insert(1.0, ' ЗАПЛПТИТЕ ИГРОКУ 2 ' + str(pay) + '₽ \n')
+            text.insert(1.0, ' ЗАПЛПТИТЕ ИГРОКУ 2 ' + str(pay * n) + '₽ \n')
         if player == chips_player2:
             pay = p1[int(active)][0]
-            cash_player2 -= pay
-            cash_player1 += pay
+            cash_player2 -= pay * n
+            cash_player1 += pay * n
             money.play()
             display_cash()
-            text.insert(1.0, ' ЗАПЛПТИТЕ ИГРОКУ 1 ' + str(pay) + '₽ \n')
+            text.insert(1.0, ' ЗАПЛПТИТЕ ИГРОКУ 1 ' + str(pay * n) + '₽ \n')
 
     if cells[int(active)][0] == 0:
         #print('ПОКУПАЕМ!')
@@ -429,7 +439,7 @@ def roll_dice():
     time.sleep(0.2)
     moveew(two_dice[1] + 1, player)
     time.sleep(0.2)
-    player, active = check(player)
+    player, active = check(player, two_dice)
 
     # ЕСЛИ НЕ БЫЛО ДУБЛЯ, ХОД СЛЕДУЮЩЕГО ИНРОКА
     if double == 0 and player == chips_player1:  player = chips_player2
