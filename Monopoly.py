@@ -38,25 +38,28 @@ chips_player1 = canvas.create_oval(727, 700, 771, 744, fill='red')
 chips_player2 = canvas.create_oval(727, 750, 771, 794, fill='blue')
 player1 = 0 # местоположение фишки игрока 1 на игровом поле (номер клетки)
 player2 = 0 # местоположение фишки игрока 2 на игровом поле (номер клетки)
-cash_player1 = 1500 # начальная сумма игрока 1
+cash_player1 = 15000 # начальная сумма игрока 1
 cash_player2 = 1500 # начальная сумма игрока 2
 in_jail = [None, None ,0 , 0]
-print(in_jail)
+p1 = {} # СОБСТВЕННОСТЬ ИГРОКА 1
+p2 = {} # СОБСТВЕННОСТЬ ИГРОКА 2
 
 money = mixer.Sound("money.mp3")
+add_money = mixer.Sound("coins-pour-out.mp3")
 sound_dice1 = mixer.Sound("roll dice1.mp3")
 sound_dice2 = mixer.Sound("roll dice2.mp3")
 sound_dice3 = mixer.Sound("roll dice3.mp3")
 sound_dice4 = mixer.Sound("roll dice4.mp3")
 sound_jail = mixer.Sound("jail.mp3")
 dice = PhotoImage(file="dice.png")
+add_money.set_volume(0.5)
 double = 0 # подсчёт выпавших дублей
 player = chips_player1 # АКТИВНЫЙ ИГРОК (какой игрок начинает ход)
 next_step = True # РАЗРЕШЕНИЕ ДЕЛАТЬ СЛЕДУЮЩИЙ ХОД
 
-cash1 = Label(win, text='PLAYER 1 = ' + str(cash_player1) + '$', font=('Helvetica', 16), bg='#ddf2df', relief="solid" ,borderwidth=1)
+cash1 = Label(win, text='PLAYER 1 = ' + str(cash_player1) + '₽', font=('Helvetica', 16), bg='#ddf2df', relief="solid" ,borderwidth=1)
 cash1.place(x=120, y=120)
-cash2 = Label(win, text='PLAYER 2 = ' + str(cash_player2) + '$', font=('Helvetica', 16), bg='#ddf2df', relief="solid" ,borderwidth=1)
+cash2 = Label(win, text='PLAYER 2 = ' + str(cash_player2) + '₽', font=('Helvetica', 16), bg='#ddf2df', relief="solid" ,borderwidth=1)
 cash2.place(x=120, y=155)
 
 cells = {}
@@ -82,12 +85,12 @@ cells[32]=[0,300,26,'Green']
 cells[34]=[0,320,28,'Green']
 cells[37]=[0,350,35,'Blue']
 cells[39]=[0,400,50,'Blue']
-cells[5]=[0,200,25,'Railway']
+cells[5]=[0,200,25,'Railway', 'Южный Вокзал', 0, 25, 50, 100, 200]
 cells[15]=[0,200,25,'Railway']
 cells[25]=[0,200,25,'Railway']
 cells[35]=[0,200,25,'Railway']
-cells[12]=[0,150,0,'Electro']
-cells[28]=[0,150,0,'Water']
+cells[12]=[0,150,0,'Com']
+cells[28]=[0,150,0,'Com']
 
 
 # ДИСПЛЕЙ ОТОБРАЖЕНИЯ ХОДОВ
@@ -131,18 +134,48 @@ for i in range(1, 41):
 # canvas.itemconfig(marker[11], fill='red')
 
 def sob (): # ПРОВЕРКА СОБСТВЕННОСТИ
-    p1 = []
-    p2 = []
-    for i in range(1, 40):
-        #print(i)
+    global p1, p2
+    for i in range(1, 40): # ЗАПОЛНЯЕМ СПИСОК КУПЛЕННЫХ ПРЕДПРИЯТИЙ ИГРОКА 1 (p1) И ИГРОКА 2 (p2)
         if i in [0, 2, 4, 7, 10, 17, 20, 22, 30, 33, 36, 38]: continue
         else: a = cells[i][0]
-        if a == chips_player1:
-            p1.append(str(a) + cells[i][3])
-        elif a == chips_player2:
-            p2.append(str(a) + cells[i][3])
-    print('PLAYER 1a ', p1)
-    print('PLAYER 2a ', p2)
+        if a == chips_player1: p1[i]=[cells[i][2],cells[i][3]]
+        elif a == chips_player2: p2[i] = [cells[i][2], cells[i][3]]
+
+    # ПРОВЕРКА НА КОЛ-ВО ЭЛЕМЕНТОВ ОДНОЙ ГРУППЫ
+    color_group = ['Brown', 'Grey', 'Pink', 'Orange', 'Red', 'Yellow', 'Green', 'Blue', 'Railway', 'Com']
+    for i in color_group: # ПРОВЕРЯЕМ СПИСОК ПРЕДПРИЯТИЙ ИГРОКА 1 НА КОЛ-ВО ЭЛЕМЕНТОВ ОДНОГО ЦВЕТА
+        n = (list([key for key, value in p1.items() if value[1] == i]))
+        if len(n) > 1:
+            if i == 'Railway':
+                rent = [0, 25, 50, 100, 200]
+                for a in n:
+                    p1[a][0] = rent[len(n)]
+            elif i == 'Brown' or i == 'Blue':
+                for a in n:
+                    p1[a][0] = p1[a][0] * 2
+        if len(n) == 3 and i != 'Railway':
+            for a in n:
+                p1[a][0] = p1[a][0] * 2
+    for i in color_group:  # ПРОВЕРЯЕМ СПИСОК ПРЕДПРИЯТИЙ ИГРОКА 2 НА КОЛ-ВО ЭЛЕМЕНТОВ ОДНОГО ЦВЕТА
+        n = (list([key for key, value in p2.items() if value[1] == i]))
+        if len(n) > 1:
+            if i == 'Railway':
+                rent = [0, 25, 50, 100, 200]
+                for a in n:
+                    p2[a][0] = rent[len(n)]
+            elif i == 'Brown' or i == 'Blue':
+                for a in n:
+                    p2[a][0] = p2[a][0] * 2
+        if len(n) == 3 and i != 'Railway':
+            for a in n:
+                p2[a][0] = p2[a][0] * 2
+    # print('player 1 ', p1)
+    # print('player 2 ', p2)
+
+
+
+
+
 
 
 
@@ -169,14 +202,8 @@ def sob (): # ПРОВЕРКА СОБСТВЕННОСТИ
 # time.sleep(1)
 
 def display_cash():
-    # cash1 = Label(win, text='PLAYER 1 = ' + str(cash_player1) + '$', font=('Helvetica', 16), bg='#ddf2df',
-    #               relief="solid", borderwidth=1)
-    # cash1.place(x=120, y=120)
-    # cash1 = Label(win, text='PLAYER 2 = ' + str(cash_player2) + '$', font=('Helvetica', 16), bg='#ddf2df',
-    #               relief="solid", borderwidth=1)
-    # cash1.place(x=120, y=155)
-    cash1.config(text='PLAYER 1 = ' + str(cash_player1) + ' $')
-    cash2.config(text='PLAYER 2 = ' + str(cash_player2) + ' $')
+    cash1.config(text='PLAYER 1 = ' + str(cash_player1) + ' ₽')
+    cash2.config(text='PLAYER 2 = ' + str(cash_player2) + ' ₽')
 
 
 
@@ -272,6 +299,7 @@ def buy(player, active):
     canvas.itemconfig(marker[active], fill=color)
 
     time.sleep(0.3)
+    sob()
     return
 
 
@@ -281,23 +309,12 @@ def check(player):
     # print('ДЕЛАЕМ ПРОВЕРКУ!')
     if player == chips_player1:  active = player1 # АКТИВНАЯ КЛЕТКА
     else: active = player2
-    # print('активный игрок', player)
-    # print('активная клетка', active)
-    # print('player1', player1)
-    # print('player2', player2)
 
     if int(active) in [0,2,7,10,17,20,22,33,36,38]: return player, active # исключил проверку не введённых данных
 
     if active == 30: # JAIL
         jail(player)
         double = 0
-        # if player == chips_player1: player = chips_player2
-        # else: player = chips_player1
-        # # text.insert(1.0, '\n')
-        # # text.insert(1.0, ' ИГРОК ОТПРАВЛЯЕТСЯ В ТЮРЬМУ!  \n')
-        # # text.insert(1.0, '\n ТРИ ДУБЛЯ ПОДРЯД!  \n')
-        # text.insert(1.0, ' \n')
-        # text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
         return player, active
 
     #print(cells[int(active)])
@@ -311,52 +328,36 @@ def check(player):
             cash_player2 -= 200
             money.play()
             display_cash()
-        text.insert(1.0, ' ЗАПЛАТИТЕ ПОДОХОДНЫЙ НАЛОГ 200$  \n')
+        text.insert(1.0, ' ЗАПЛАТИТЕ ПОДОХОДНЫЙ НАЛОГ 200₽  \n')
         return player, active
 
 
     if cells[int(active)][0] == player:
         print('СВОЯ КЛЕТКА!)')
-        # if player == chips_player1: player = chips_player2
-        # else:  player = chips_player1
-        # return player, active
 
     if cells[int(active)][0] != 0 and cells[int(active)][0] != player:
-        pay = cells[int(active)][2]
-        #print('ПЛАТИМ РЕНТУ!!!' + str(pay) + '$')
+        # pay = cells[int(active)][2]
+        # print('ПЛАТИМ РЕНТУ!!!' + str(pay) + '₽')
         if player == chips_player1:
+            pay = p2[int(active)][0]
             cash_player1 -= pay
             cash_player2 += pay
             money.play()
             display_cash()
-            text.insert(1.0, ' ЗАПЛПТИТЕ ИГРОКУ 2 ' + str(pay) + '$ \n')
-            # print('cash_player1 = ', cash_player1)
-            # print('cash_player2 = ', cash_player2)
+            text.insert(1.0, ' ЗАПЛПТИТЕ ИГРОКУ 2 ' + str(pay) + '₽ \n')
         if player == chips_player2:
+            pay = p1[int(active)][0]
             cash_player2 -= pay
             cash_player1 += pay
             money.play()
             display_cash()
-            text.insert(1.0, ' ЗАПЛПТИТЕ ИГРОКУ 1 ' + str(pay) + '$ \n')
-            # print('cash_player1 = ', cash_player1)
-            # print('cash_player2 = ', cash_player2)
-            # if player == chips_player1:
-            #     player = chips_player2
-            # else:
-            #     player = chips_player1
+            text.insert(1.0, ' ЗАПЛПТИТЕ ИГРОКУ 1 ' + str(pay) + '₽ \n')
 
     if cells[int(active)][0] == 0:
         #print('ПОКУПАЕМ!')
         money.play()
         buy(player, active)
         display_cash()
-        #print(cells[int(active)])
-        # if player == chips_player1: player = chips_player2
-        # else:  player = chips_player1
-        # return player, active
-
-    # if player == chips_player1: player = chips_player2
-    # else:  player = chips_player1
     return player, active
 
 
@@ -410,18 +411,18 @@ def roll_dice():
     if player == chips_player1:
         player1 += sum(two_dice)
         if player1 >= 40:
-            money.play()
+            add_money.play()
             cash_player1 += 200
             player1 -= 40
-            text.insert(1.0, ' +200$ ЗА ПОЛНЫЙ КРУГ! \n')
+            text.insert(1.0, ' +200₽ ЗА ПОЛНЫЙ КРУГ! \n')
             display_cash()
     if player == chips_player2:
         player2 += sum(two_dice)
         if player2 >= 40:
-            money.play()
+            add_money.play()
             cash_player2 += 200
             player2 -= 40
-            text.insert(1.0, ' +200$ ЗА ПОЛНЫЙ КРУГ! \n')
+            text.insert(1.0, ' +200₽ ЗА ПОЛНЫЙ КРУГ! \n')
             display_cash()
 
     moveew(two_dice[0]+ 1, player)
