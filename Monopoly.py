@@ -38,7 +38,7 @@ chips_player1 = canvas.create_oval(727, 700, 771, 744, fill='red')
 chips_player2 = canvas.create_oval(727, 750, 771, 794, fill='blue')
 player1 = 0 # местоположение фишки игрока 1 на игровом поле (номер клетки)
 player2 = 0 # местоположение фишки игрока 2 на игровом поле (номер клетки)
-cash_player1 = 15000 # начальная сумма игрока 1
+cash_player1 = 1500 # начальная сумма игрока 1
 cash_player2 = 1500 # начальная сумма игрока 2
 in_jail = [None, None ,0 , 0]
 p1 = {} # СОБСТВЕННОСТЬ ИГРОКА 1
@@ -63,34 +63,34 @@ cash2 = Label(win, text='PLAYER 2 = ' + str(cash_player2) + '₽', font=('Helvet
 cash2.place(x=120, y=155)
 
 cells = {}
-cells[1]=[0,60,2,'Brown']
-cells[3]=[0,60,4,'Brown']
-cells[6]=[0,100,6,'Grey']
-cells[8]=[0,100,6,'Grey']
-cells[9]= [0,120,8,'Grey']
-cells[11]=[0,140,10,'Pink']
-cells[13]=[0,140,10,'Pink']
-cells[14]=[0,160,12,'Pink']
-cells[16]=[0,180,14,'Orange']
-cells[18]=[0,180,14,'Orange']
-cells[19]=[0,200,16,'Orange']
-cells[21]=[0,220,18,'Red']
-cells[23]=[0,220,18,'Red']
-cells[24]=[0,240,20,'Red']
-cells[26]=[0,260,22,'Yellow']
-cells[27]=[0,260,22,'Yellow']
-cells[29]=[0,280,24,'Yellow']
-cells[31]=[0,300,26,'Green']
-cells[32]=[0,300,26,'Green']
-cells[34]=[0,320,28,'Green']
-cells[37]=[0,350,35,'Blue']
-cells[39]=[0,400,50,'Blue']
-cells[5]=[0,200,25,'Railway', 'Южный Вокзал', 0, 25, 50, 100, 200]
-cells[15]=[0,200,25,'Railway']
-cells[25]=[0,200,25,'Railway']
-cells[35]=[0,200,25,'Railway']
-cells[12]=[0,150,4,'Com']
-cells[28]=[0,150,4,'Com']
+cells[1]=[0,60,2,'Grey', 'СЕННАЯ', 10, 30, 90, 160, 250, 50, 50]
+cells[3]=[0,60,4,'Grey', 'СТ. АРБАТ', 20, 60, 180, 320, 450, 50, 50]
+cells[6]=[0,100,6,'lightblue', 'пр. ЛЕНИНА', 30, 90, 270, 400, 550, 50, 50]
+cells[8]=[0,100,6,'lightblue', 'пр. К. МАРКСА', 30, 90, 270, 400, 550, 50, 50]
+cells[9]= [0,120,8,'lightblue', 'НЕВСКИЙ пр.', 40, 100, 300, 450, 600, 50, 50]
+cells[11]=[0,140,10,'Pink', 'КАФЕ АРИЯ', 50, 150, 450, 625, 750, 100, 100]
+cells[13]=[0,140,10,'Pink', 'ЬУРГЕР МАК', 50, 150, 450, 625, 750, 100, 100]
+cells[14]=[0,160,12,'Pink', 'ПИЦЦА-РАН', 60, 180, 500, 700, 900, 100, 100]
+cells[16]=[0,180,14,'Orange', 'КИНО-СТАР',70, 200, 550, 750, 950, 100, 100]
+cells[18]=[0,180,14,'Orange', 'ТЕАТР БДТ', 70, 200, 550, 750, 950, 100, 100]
+cells[19]=[0,200,16,'Orange', 'БОЛЬШОЙ ТЕАТР', 80, 220, 600, 800, 1000, 100, 100]
+cells[21]=[0,220,18,'Red', 'САЛОН KIA', 90, 250, 700, 875, 1050, 150, 150]
+cells[23]=[0,220,18,'Red', 'САЛОН UAZ', 90, 250, 700, 875, 1050, 150, 150]
+cells[24]=[0,240,20,'Red', 'САЛОН BMW', 100, 300, 750, 925, 1100, 150, 150]
+cells[26]=[0,260,22,'Yellow', 'БИЛАЙН', 110, 330, 800, 975, 1150, 150, 150]
+cells[27]=[0,260,22,'Yellow', 'ТЕЛЕ2', 110, 330, 800, 975, 1150, 150, 150]
+cells[29]=[0,280,24,'Yellow', 'МТС', 120, 360, 850, 1025, 1200, 150, 150]
+cells[31]=[0,300,26,'Green', 'ПАРК ГОРЬКОГО', 130, 390, 900, 1100, 1278, 200, 200]
+cells[32]=[0,300,26,'Green', 'ЛОМОНОСОВСКИЙ', 130, 390, 900, 1100, 1278, 200, 200]
+cells[34]=[0,320,28,'Green', 'ПАРК ПОБЕДЫ', 150, 390, 900, 1200, 1400, 200, 200]
+cells[37]=[0,350,35,'Blue', 'СЕННАЯ ПЛ.', 175, 500, 1100, 1300, 1500, 200, 200]
+cells[39]=[0,400,50,'Blue', 'СТ. АРБАТ',175, 500, 1100, 1700, 2000, 200, 200]
+cells[5]=[0,200,25,'Railway', 'ЛЕНИНГРАДСКИЙ ВОКЗАЛ']
+cells[15]=[0,200,25,'Railway', 'ВОКЗАЛ КИНГИСЕПП']
+cells[25]=[0,200,25,'Railway', 'МОСКОВСКИЙ ВОКЗАЛ']
+cells[35]=[0,200,25,'Railway', 'ВОКЗАЛ ВЛАДИВОСТОК']
+cells[12]=[0,150,4,'Com', 'РОСЭНЕРГО']
+cells[28]=[0,150,4,'Com', 'ВОДОКАНАЛ']
 
 
 # ДИСПЛЕЙ ОТОБРАЖЕНИЯ ХОДОВ
@@ -142,7 +142,7 @@ def sob (): # ПРОВЕРКА СОБСТВЕННОСТИ
         elif a == chips_player2: p2[i] = [cells[i][2], cells[i][3]]
 
     # ПРОВЕРКА НА КОЛ-ВО ЭЛЕМЕНТОВ ОДНОЙ ГРУППЫ
-    color_group = ['Brown', 'Grey', 'Pink', 'Orange', 'Red', 'Yellow', 'Green', 'Blue', 'Railway', 'Com']
+    color_group = ['Grey', 'Lightblue', 'Pink', 'Orange', 'Red', 'Yellow', 'Green', 'Blue', 'Railway', 'Com']
     for i in color_group: # ПРОВЕРЯЕМ СПИСОК ПРЕДПРИЯТИЙ ИГРОКА 1 НА КОЛ-ВО ЭЛЕМЕНТОВ ОДНОГО ЦВЕТА
         n = (list([key for key, value in p1.items() if value[1] == i]))
         if len(n) > 1:
@@ -300,7 +300,7 @@ def buy(player, active):
             return
         cash_player2 -= price
         color = 'blue'
-    text.insert(1.0, ' ИГРОК '  + str(player - 1) + ' ПОКУПАЕТ ' + str(cells[int(active)][3]) + '\n')
+    text.insert(1.0, ' ИГРОК '  + str(player - 1) + ' ПОКУПАЕТ ' + str(cells[int(active)][4]) + '\n')
     cells[int(active)][0] = player
     canvas.itemconfig(marker[active], fill=color)
 
@@ -316,7 +316,7 @@ def check(player, two_dice):
     if player == chips_player1:  active = player1 # АКТИВНАЯ КЛЕТКА
     else: active = player2
 
-    if int(active) in [0,2,7,10,17,20,22,33,36,38]: return player, active # исключил проверку не введённых данных
+    if int(active) in [0,2,7,10,17,20,22,33,36]: return player, active # исключил проверку не введённых данных
 
     if active == 30: # JAIL
         jail(player)
@@ -335,6 +335,18 @@ def check(player, two_dice):
             money.play()
             display_cash()
         text.insert(1.0, ' ЗАПЛАТИТЕ ПОДОХОДНЫЙ НАЛОГ 200₽  \n')
+        return player, active
+
+    if active == 38: # ПАРКОВОЧНЫЙ ТАЛОН
+        if player == chips_player1:
+            cash_player1 -= 75
+            money.play()
+            display_cash()
+        else:
+            cash_player2 -= 75
+            money.play()
+            display_cash()
+        text.insert(1.0, ' ОПЛАТИТЕ ПАРКОВКУ 75₽  \n')
         return player, active
 
 
