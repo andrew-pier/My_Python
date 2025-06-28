@@ -62,6 +62,17 @@ cash1.place(x=120, y=120)
 cash2 = Label(win, text='PLAYER 2 = ' + str(cash_player2) + '₽', font=('Helvetica', 16), bg='#ddf2df', relief="solid" ,borderwidth=1)
 cash2.place(x=120, y=155)
 
+dice1 = canvas.create_image(440, 600)
+dice2 = canvas.create_image(570, 600)
+
+dice_result = []
+dice_result.append(PhotoImage(file="Monopoly/1a.png"))
+dice_result.append(PhotoImage(file="Monopoly/2a.png"))
+dice_result.append(PhotoImage(file="Monopoly/3a.png"))
+dice_result.append(PhotoImage(file="Monopoly/4a.png"))
+dice_result.append(PhotoImage(file="Monopoly/5a.png"))
+dice_result.append(PhotoImage(file="Monopoly/6a.png"))
+
 cells = {}
 cells[1]=[0,60,2,'Grey', 'СЕННАЯ', 10, 30, 90, 160, 250, 50, 50]
 cells[3]=[0,60,4,'Grey', 'СТ. АРБАТ', 20, 60, 180, 320, 450, 50, 50]
@@ -69,8 +80,8 @@ cells[6]=[0,100,6,'lightblue', 'пр. ЛЕНИНА', 30, 90, 270, 400, 550, 50, 
 cells[8]=[0,100,6,'lightblue', 'пр. К. МАРКСА', 30, 90, 270, 400, 550, 50, 50]
 cells[9]= [0,120,8,'lightblue', 'НЕВСКИЙ пр.', 40, 100, 300, 450, 600, 50, 50]
 cells[11]=[0,140,10,'Pink', 'КАФЕ АРИЯ', 50, 150, 450, 625, 750, 100, 100]
-cells[13]=[0,140,10,'Pink', 'ЬУРГЕР МАК', 50, 150, 450, 625, 750, 100, 100]
-cells[14]=[0,160,12,'Pink', 'ПИЦЦА-РАН', 60, 180, 500, 700, 900, 100, 100]
+cells[13]=[0,140,10,'Pink', 'БУРГЕР МАК', 50, 150, 450, 625, 750, 100, 100]
+cells[14]=[0,160,12,'Pink', 'ПИЦЦА-RUN', 60, 180, 500, 700, 900, 100, 100]
 cells[16]=[0,180,14,'Orange', 'КИНО-СТАР',70, 200, 550, 750, 950, 100, 100]
 cells[18]=[0,180,14,'Orange', 'ТЕАТР БДТ', 70, 200, 550, 750, 950, 100, 100]
 cells[19]=[0,200,16,'Orange', 'БОЛЬШОЙ ТЕАТР', 80, 220, 600, 800, 1000, 100, 100]
@@ -91,7 +102,15 @@ cells[25]=[0,200,25,'Railway', 'МОСКОВСКИЙ ВОКЗАЛ']
 cells[35]=[0,200,25,'Railway', 'ВОКЗАЛ ВЛАДИВОСТОК']
 cells[12]=[0,150,4,'Com', 'РОСЭНЕРГО']
 cells[28]=[0,150,4,'Com', 'ВОДОКАНАЛ']
+top = True
 
+cards = []
+for i in range(1, 40):  #
+    if i in [0, 2, 4, 7, 10, 17, 20, 22, 30, 33, 36, 38]:
+        cards.append("None")
+    else:
+        cards.append(PhotoImage(file="Monopoly/Card-" + str(i) + ".png"))
+print(cards)
 
 # ДИСПЛЕЙ ОТОБРАЖЕНИЯ ХОДОВ
 # text = Text(width=34, height=17, bg="lightgreen", fg='darkgreen', font=("TkDefaultFont", 11), wrap=WORD)
@@ -106,13 +125,6 @@ x = 757 #692 + 65
 y = 695
 marker = [0] # СПИСОК id МЕТОК ПРИНАДЛЕЖНОСТИ КЛЕТОК
 for i in range(1, 41):
-    # print(i)
-    # if i in [0, 2, 4, 7, 10, 17, 20, 22, 30, 33, 36, 38]: continue
-    # else: a = cells[i][0]
-    # if a == chips_player1: color = 'red'
-    # elif a == chips_player2: color' = 'blue'
-    # else: color = ''
-
     if i in (10, 20, 30, 40): marker.append('no-' + str(i)) # continue
 
     if i < 10:  #
@@ -130,8 +142,8 @@ for i in range(1, 41):
         x = 693#
         y += 65
         marker.append(canvas.create_rectangle(x, y, x - 7, y - 65, fill='', width=0))
-# print(marker)
-# canvas.itemconfig(marker[11], fill='red')
+
+
 
 def sob (): # ПРОВЕРКА СОБСТВЕННОСТИ
     global p1, p2
@@ -175,37 +187,8 @@ def sob (): # ПРОВЕРКА СОБСТВЕННОСТИ
         if len(n) == 3 and i != 'Railway':
             for a in n:
                 p2[a][0] = p2[a][0] * 2
-    # print('player 1 ', p1)
-    # print('player 2 ', p2)
 
 
-
-
-
-
-
-
-# win_r = Canvas(win, width=300, height=800, border=5, highlightthickness=0)
-# win_r.pack(side="right")
-# #win_r.create_rectangle(0, 0, 300, 804, fill="lightblue", outline='red')
-# # ДИСПЛЕЙ ОТОБРАЖЕНИЯ ХОДОВ
-# text = Text(width=38, height=50, bg="lightblue", fg='#323dbc', wrap=WORD)
-# text.place(x=1115, y=0)
-
-# win_l = Canvas(win, width=350, bd=5, highlightthickness=0)
-# win_l.pack(side="left")
-
-# picture = canvas.create_image(400, 400, image=dice)
-# button_dice = Button(win, image=dice, highlightthickness=0 ,bd=0, height=105, bg='#ddf2df', activebackground='#ddf2df', command=roll_dice)
-# button_dice.place(x=125, y=577)
-# button_dice.place_forget() # скрыть кнопку
-
-# img = ImageTk.PhotoImage(file="fire.png")
-# #canvas.create_image(400, 400, image=img, anchor=CENTER)
-
-# canvas.pack()
-# win.update()
-# time.sleep(1)
 
 def display_cash():
     cash1.config(text='PLAYER 1 = ' + str(cash_player1) + ' ₽')
@@ -261,6 +244,7 @@ def moveew(n, player):
         for i in range(1, 66):
             time.sleep(0.0005)  # СКОРОСТЬ ПЕРЕМЕЩЕНИЯ ФИШКИ
             canvas.move(player, step_x, step_y)
+            if not next_step: button_dice.place_forget()
             win.update()
         # print('step-', n, '  x,y = ', canvas.coords(player)) # показать координаты фишки после каждой клетки
 
@@ -280,12 +264,61 @@ def jail(player):
         canvas.coords(player, 11, 704, 55, 748)
         player2 = 10
     in_jail[player] = 3
+    player_change(player)
     print(in_jail)
 
 
 
+def open_card(player, active):
+    # player = player
+    print(active)
+    win2 = Toplevel()
+    win2.geometry('280x496+690+100')
+    win2.overrideredirect(True)
+    win2.wm_attributes("-topmost", 1)  # поверх других окон
+    win2.resizable(False, False)  # запрещаем изменение размера окна
+    canvas2 = Canvas(win2, width=280, height=625, bd=0, background='grey', highlightthickness=0)
+    canvas2.pack()
+    b_buy = Button(win2, text='КУПИТЬ', width=36, height=2, background='#a2b3db', command= lambda: closer_buy(player, active))
+    b_buy.place(x=10, y=405)
+    #
+    b_auc = Button(win2, text='АУКЦИОН', width=36, height=2, background='#cdaaa8', command=lambda: closer2())
+    b_auc.place(x=10, y=445)
+    canvas2.create_image(140, 205, image=cards[active-1])
+
+
+    def closer_buy(player, active):
+        buy(player, active)
+        player_change(player)
+        win2.destroy()
+        return
+
+    def closer2():
+        #canvas2.itemconfig(ar, image=r1)
+        print('Hellow CLOSER')
+        player_change(player)
+        win2.destroy()
+
+    win2.mainloop()
+
+
+
+def player_change(player_):
+    global next_step, player
+    if double == 0 and player_ == chips_player1:  player = chips_player2
+    elif double == 0: player = chips_player1
+    if double == 0: text.insert(1.0, ' ---  \n')
+    text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
+    next_step = True
+    button_dice.place(x=125, y=577)
+    win.update()
+    canvas.itemconfig(dice1, image='')
+    canvas.itemconfig(dice2, image='')
+    #canvas.update()
+
+
 def buy(player, active):
-    global cash_player1, cash_player2
+    global cash_player1, cash_player2, next_step
     price = cells[int(active)][1]
 
     if player == chips_player1:
@@ -303,6 +336,9 @@ def buy(player, active):
     text.insert(1.0, ' ИГРОК '  + str(player - 1) + ' ПОКУПАЕТ ' + str(cells[int(active)][4]) + '\n')
     cells[int(active)][0] = player
     canvas.itemconfig(marker[active], fill=color)
+
+    money.play()
+    display_cash()
 
     time.sleep(0.3)
     sob()
@@ -322,8 +358,6 @@ def check(player, two_dice):
         jail(player)
         double = 0
         return player, active
-
-    #print(cells[int(active)])
 
     if active == 4: # ПОДОХОДНЫЙ НАЛОГ
         if player == chips_player1:
@@ -354,8 +388,6 @@ def check(player, two_dice):
         print('СВОЯ КЛЕТКА!)')
 
     if cells[int(active)][0] != 0 and cells[int(active)][0] != player:
-        # pay = cells[int(active)][2]
-        # print('ПЛАТИМ РЕНТУ!!!' + str(pay) + '₽')
         # ЕСЛИ ВЫПАЛА ЯЧЕЙКА КОММ. УСЛУГ
         if active == 12 or active == 28: n = sum(two_dice)  # ТО ПЛАТА УМНОЖАЕТСЯ НА ВЫПАВШИЕ КУБИКИ
         else:n = 1  # ИНАЧЕ ПЛАТА НЕ МЕНЯЕТСЯ
@@ -377,8 +409,9 @@ def check(player, two_dice):
 
     if cells[int(active)][0] == 0:
         #print('ПОКУПАЕМ!')
-        money.play()
-        buy(player, active)
+        # money.play()
+        #buy(player, active)
+        open_card(player, active)
         display_cash()
     return player, active
 
@@ -387,19 +420,28 @@ def roll_dice():
     global player1, player2, cash_player1, cash_player2, player, double, next_step
     if not next_step: return
 
+    # button_dice.place_forget()
+    # win.update()
     i = random.randint(1, 6) # ВЫБИРАЕМ ЗВУК КУБИКОВ
     if i == 2: sound_dice2.play()
     elif i == 3: sound_dice3.play()
     elif i == 4: sound_dice4.play()
     else: sound_dice1.play()
-    time.sleep(1.2)
+    time.sleep(1)
     #####################################################################################################
     two_dice = [0, 0]
     next_step = False  # блокируем возможность следующего хода
 
     two_dice[0] = random.randint(1, 6)
     two_dice[1] = random.randint(1, 6)
+
+    canvas.itemconfig(dice1, image=dice_result[two_dice[0] - 1])
+    canvas.itemconfig(dice2, image=dice_result[two_dice[1] - 1])
+    button_dice.place_forget()
+    #canvas.update()
+    #time.sleep(1.2)
     text.insert(1.0, ' ВЫПАЛО ' + str(two_dice[0]) + ' и ' + str(two_dice[1]) + '\n')
+
     if two_dice[0] == two_dice[1]: # ЕСЛИ ВЫПАЛ ДУБЛЬ
         double += 1
         text.insert(1.0, ' ДУБЛЬ!  \n')
@@ -414,6 +456,11 @@ def roll_dice():
             text.insert(1.0, ' --- \n')
             text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
             next_step = True
+            button_dice.place(x=125, y=577)
+            win.update()
+            # canvas.itemconfig(dice1, image='')
+            # canvas.itemconfig(dice2, image='')
+            #canvas.update()
             return
         if in_jail[player] != 0: # ЕСЛИ В ТЮРЬМЕ, ВЫКИНУВ ДУБЛЬ ВЫХОДИМ ИЗ ТЮРЬМЫ
             in_jail[player] = 0
@@ -428,6 +475,12 @@ def roll_dice():
         text.insert(1.0, ' \n')
         text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
         next_step = True
+        button_dice.place(x=125, y=577)
+        win.update()
+        canvas.itemconfig(dice1, image='')
+        canvas.itemconfig(dice2, image='')
+        #canvas.update()
+
         return
 
     if player == chips_player1:
@@ -454,20 +507,25 @@ def roll_dice():
     player, active = check(player, two_dice)
 
     # ЕСЛИ НЕ БЫЛО ДУБЛЯ, ХОД СЛЕДУЮЩЕГО ИНРОКА
-    if double == 0 and player == chips_player1:  player = chips_player2
-    elif double == 0: player = chips_player1
-    if double == 0: text.insert(1.0, ' ---  \n')
-    text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
-    next_step = True
+    # if double == 0 and player == chips_player1:  player = chips_player2
+    # elif double == 0: player = chips_player1
+    # if double == 0: text.insert(1.0, ' ---  \n')
+    # text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
+    # next_step = True
+    # button_dice.place(x=125, y=577)
+    # win.update()
+    player_change(player)
+
 
 
 
 display_cash()
 
 button_dice = Button(win, image=dice, highlightthickness=0 ,bd=0, height=105, bg='#ddf2df', activebackground='#ddf2df', command=roll_dice)
-button_dice.place(x=125, y=577)
+if next_step: button_dice.place(x=125, y=577)
 button_dice.bind("<Enter>", lambda event: button_dice.place(x=127, y=579))
 button_dice.bind("<Leave>", lambda event: button_dice.place(x=125, y=577))
+
 
 
 
