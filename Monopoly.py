@@ -44,6 +44,7 @@ in_jail = [None, None ,0 , 0]
 p1 = {} # СОБСТВЕННОСТЬ ИГРОКА 1
 p2 = {} # СОБСТВЕННОСТЬ ИГРОКА 2
 
+shur = mixer.Sound("Monopoly/shursh.mp3")
 money = mixer.Sound("money.mp3")
 add_money = mixer.Sound("coins-pour-out.mp3")
 sound_dice1 = mixer.Sound("roll dice1.mp3")
@@ -57,9 +58,9 @@ double = 0 # подсчёт выпавших дублей
 player = chips_player1 # АКТИВНЫЙ ИГРОК (какой игрок начинает ход)
 next_step = True # РАЗРЕШЕНИЕ ДЕЛАТЬ СЛЕДУЮЩИЙ ХОД
 
-cash1 = Label(win, text='PLAYER 1 = ' + str(cash_player1) + '₽', font=('Helvetica', 16), bg='#ddf2df', relief="solid" ,borderwidth=1)
+cash1 = Label(win, text='PLAYER 1 = ' + str(cash_player1) + '₽', font=('Helvetica', 16), bg='#c1e8c6', relief="solid" ,borderwidth=1)
 cash1.place(x=120, y=120)
-cash2 = Label(win, text='PLAYER 2 = ' + str(cash_player2) + '₽', font=('Helvetica', 16), bg='#ddf2df', relief="solid" ,borderwidth=1)
+cash2 = Label(win, text='PLAYER 2 = ' + str(cash_player2) + '₽', font=('Helvetica', 16), bg='#c1e8c6', relief="solid" ,borderwidth=1)
 cash2.place(x=120, y=155)
 
 dice1 = canvas.create_image(440, 600)
@@ -239,7 +240,7 @@ def moveew(n, player):
             if player == chips_player2: canvas.coords(player, 55, 10, 99, 54)
             step_y = 0
             step_x = 1
-
+        #shur.play()
         # АНИМАЦИЯ ШАГА НА ОДНУ КЛЕТКУ (65 пикселей)
         for i in range(1, 66):
             time.sleep(0.0005)  # СКОРОСТЬ ПЕРЕМЕЩЕНИЯ ФИШКИ
@@ -437,9 +438,10 @@ def roll_dice():
 
     canvas.itemconfig(dice1, image=dice_result[two_dice[0] - 1])
     canvas.itemconfig(dice2, image=dice_result[two_dice[1] - 1])
+    canvas.update()
     button_dice.place_forget()
-    #canvas.update()
-    #time.sleep(1.2)
+    win.update()
+    #time.sleep(0.5)
     text.insert(1.0, ' ВЫПАЛО ' + str(two_dice[0]) + ' и ' + str(two_dice[1]) + '\n')
 
     if two_dice[0] == two_dice[1]: # ЕСЛИ ВЫПАЛ ДУБЛЬ
@@ -469,11 +471,11 @@ def roll_dice():
 
     if in_jail[player] != 0:
         in_jail[player] -=1 # ЕСЛИ В ТЮРЬМЕ, ПРОПУСКАЕМ 3 ХОДА
-        if player == chips_player1: player = chips_player2
-        else: player = chips_player1
-        text.insert(1.0, ' ИГРОК ВСЁ ЕЩЁ В ТЮРЬМЕ!  \n')
+        text.insert(1.0, ' ИГРОК ВСЁ ЕЩЁ В ТЮРЬМЕ!  ' + str(3 - in_jail[player]) + '\n')
         text.insert(1.0, ' \n')
         text.insert(1.0, ' ХОД ' + str(player - 1) + '-го ИГРОКА  \n')
+        if player == chips_player1: player = chips_player2
+        else: player = chips_player1
         next_step = True
         button_dice.place(x=125, y=577)
         win.update()
