@@ -38,13 +38,12 @@ chips_player1 = canvas.create_oval(727, 700, 771, 744, fill='red')
 chips_player2 = canvas.create_oval(727, 750, 771, 794, fill='blue')
 player1 = 0 # местоположение фишки игрока 1 на игровом поле (номер клетки)
 player2 = 0 # местоположение фишки игрока 2 на игровом поле (номер клетки)
-cash_player1 = 1500 # начальная сумма игрока 1
+cash_player1 = 15000 # начальная сумма игрока 1
 cash_player2 = 1500 # начальная сумма игрока 2
 in_jail = [None, None ,0 , 0]
 p1 = {} # СОБСТВЕННОСТЬ ИГРОКА 1
 p2 = {} # СОБСТВЕННОСТЬ ИГРОКА 2
 
-shur = mixer.Sound("Monopoly/shursh.mp3")
 money = mixer.Sound("money.mp3")
 add_money = mixer.Sound("coins-pour-out.mp3")
 sound_dice1 = mixer.Sound("roll dice1.mp3")
@@ -57,6 +56,7 @@ add_money.set_volume(0.5)
 double = 0 # подсчёт выпавших дублей
 player = chips_player1 # АКТИВНЫЙ ИГРОК (какой игрок начинает ход)
 next_step = True # РАЗРЕШЕНИЕ ДЕЛАТЬ СЛЕДУЮЩИЙ ХОД
+visible_card = False
 
 cash1 = Label(win, text='PLAYER 1 = ' + str(cash_player1) + '₽', font=('Helvetica', 16), bg='#c1e8c6', relief="solid" ,borderwidth=1)
 cash1.place(x=120, y=120)
@@ -151,11 +151,11 @@ def sob (): # ПРОВЕРКА СОБСТВЕННОСТИ
     for i in range(1, 40): # ЗАПОЛНЯЕМ СПИСОК КУПЛЕННЫХ ПРЕДПРИЯТИЙ ИГРОКА 1 (p1) И ИГРОКА 2 (p2)
         if i in [0, 2, 4, 7, 10, 17, 20, 22, 30, 33, 36, 38]: continue
         else: a = cells[i][0]
-        if a == chips_player1: p1[i]=[cells[i][2],cells[i][3]]
+        if a == chips_player1: p1[i]=[cells[i][2],cells[i][3],False]
         elif a == chips_player2: p2[i] = [cells[i][2], cells[i][3]]
 
     # ПРОВЕРКА НА КОЛ-ВО ЭЛЕМЕНТОВ ОДНОЙ ГРУППЫ
-    color_group = ['Grey', 'Lightblue', 'Pink', 'Orange', 'Red', 'Yellow', 'Green', 'Blue', 'Railway', 'Com']
+    color_group = ['Grey', 'lightblue', 'Pink', 'Orange', 'Red', 'Yellow', 'Green', 'Blue', 'Railway', 'Com']
     for i in color_group: # ПРОВЕРЯЕМ СПИСОК ПРЕДПРИЯТИЙ ИГРОКА 1 НА КОЛ-ВО ЭЛЕМЕНТОВ ОДНОГО ЦВЕТА
         n = (list([key for key, value in p1.items() if value[1] == i]))
         if len(n) > 1:
@@ -166,12 +166,15 @@ def sob (): # ПРОВЕРКА СОБСТВЕННОСТИ
                 rent = [0, 25, 50, 100, 200]
                 for a in n:
                     p1[a][0] = rent[len(n)]
-            elif i == 'Brown' or i == 'Blue':
+            elif i == 'Grey' or i == 'Blue':
                 for a in n:
                     p1[a][0] = p1[a][0] * 2
+                    p1[a][2] = 'True'
         if len(n) == 3 and i != 'Railway':
             for a in n:
                 p1[a][0] = p1[a][0] * 2
+                p1[a][2] = 'True'
+
     for i in color_group:  # ПРОВЕРЯЕМ СПИСОК ПРЕДПРИЯТИЙ ИГРОКА 2 НА КОЛ-ВО ЭЛЕМЕНТОВ ОДНОГО ЦВЕТА
         n = (list([key for key, value in p2.items() if value[1] == i]))
         if len(n) > 1:
@@ -182,12 +185,14 @@ def sob (): # ПРОВЕРКА СОБСТВЕННОСТИ
                 rent = [0, 25, 50, 100, 200]
                 for a in n:
                     p2[a][0] = rent[len(n)]
-            elif i == 'Brown' or i == 'Blue':
+            elif i == 'Grey' or i == 'Blue':
                 for a in n:
                     p2[a][0] = p2[a][0] * 2
+                    p2[a][2] = 'True'
         if len(n) == 3 and i != 'Railway':
             for a in n:
                 p2[a][0] = p2[a][0] * 2
+                p2[a][2] = 'True'
 
 
 
@@ -284,7 +289,7 @@ def open_card(player, active):
     b_buy.place(x=10, y=405)
     #
     b_auc = Button(win2, text='АУКЦИОН', width=36, height=2, background='#cdaaa8', command=lambda: closer2())
-    b_auc.place(x=10, y=445)
+    b_auc.place(x=10, y=446)
     canvas2.create_image(140, 205, image=cards[active-1])
 
 
@@ -316,6 +321,7 @@ def player_change(player_):
     canvas.itemconfig(dice1, image='')
     canvas.itemconfig(dice2, image='')
     #canvas.update()
+
 
 
 def buy(player, active):
@@ -415,6 +421,7 @@ def check(player, two_dice):
         open_card(player, active)
         display_cash()
     return player, active
+
 
 
 def roll_dice():
@@ -520,8 +527,68 @@ def roll_dice():
 
 
 
+def show_me_card(event):
+    global visible_card
+    x = canvas.winfo_pointerx() - canvas.winfo_rootx()
+    y = canvas.winfo_pointery() - canvas.winfo_rooty()
+
+    if 110 < x < 695 and 110 < y < 695: return
+    if y > 695:
+        if x < 111 or x > 695: return
+        else: n = 9 - ((x - 110) // 65)
+    if y < 111:
+        if x < 111 or x > 695: return
+        else: n = 21 + ((x - 110) // 65)
+    if x > 695:
+        if y < 111 or y > 695: return
+        else: n = 31 + ((y - 110) // 65)
+    if x < 111:
+        if y < 111 or y > 695: return
+        else: n = 19 - ((y - 110) // 65)
+    if n in (2, 4, 7, 17, 22, 33, 36, 38): return
+
+    if not visible_card:
+        win_card = Toplevel()
+        size_y = 404
+        if cells[n][0] == player: size_y += 45
+        print(player)
+        if n in p1 and p1[n][2]: size_y += 40
+        #if player == 3 and p2[n][2]: size_y += 40
+        win_card.geometry('270x' + str(size_y) + '+500+100')
+        win_card.overrideredirect(True)
+        win_card.wm_attributes("-topmost", 1)  # поверх других окон
+        win_card.resizable(False, False)  # запрещаем изменение размера окна
+        canvas2 = Canvas(win_card, width=270, height=size_y, bd=0, bg='grey', highlightthickness=0)
+        canvas2.pack()
+        card = PhotoImage(file="Monopoly/Card-" + str(n) + ".png")
+        canvas2.create_image(135, 202, image=card)
+        canvas2.update()
+        b_sell = Button(win_card, text='ЗАЛОГ', width=36, height=2, background='#cdaaa8')#cdaaa8
+        b_build = Button(win_card, text='СТРОЙКА', width=36, height=2, background='#a2b3db')
+
+        if cells[n][0] == player: b_sell.place(x=5, y=403)
+        if  n in p1 and p1[n][2]:
+            b_build.place(x=5, y=403)
+            b_sell.place(x=5, y=446)
+
+        def zzz():
+            global visible_card
+            visible_card = False
+            win_card.destroy()
+        visible_card = True
+        canvas2.bind("<Button-1>", lambda x: zzz())
+        for a in p1: print(p1[a])
+
+        # time.sleep(3)
+        # win_card.destroy()
+        win_card.mainloop()
+
+
+
 
 display_cash()
+
+canvas.bind("<Button-1>", show_me_card)  # Левая кнопка мыши
 
 button_dice = Button(win, image=dice, highlightthickness=0 ,bd=0, height=105, bg='#ddf2df', activebackground='#ddf2df', command=roll_dice)
 if next_step: button_dice.place(x=125, y=577)
